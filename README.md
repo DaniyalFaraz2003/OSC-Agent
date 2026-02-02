@@ -102,13 +102,13 @@ Once implemented, the CLI will support:
 
 ```bash
 # Analyze and fix an issue
-osc-agent --repo <owner/repo> --issue <issue-number>
+osc --repo <owner/repo> --issue <issue-number>
 
 # Run in autonomous mode
-osc-agent --repo <owner/repo> --auto
+osc --repo <owner/repo> --auto
 
 # Custom configuration
-osc-agent --config ./config.yaml
+osc --config ./config.yaml
 ```
 
 ## Configuration
