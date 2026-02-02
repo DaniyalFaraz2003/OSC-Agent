@@ -703,7 +703,8 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Add version and help commands
 - Set up command structure for sub-commands
 - Add ASCII art banner (optional but nice)
-- Implement global options (--verbose, --config, etc.)
+- Implement global options (--verbose, --config, etc.) for a subcommand-first CLI layout:
+  `osc [global options] <command> [command options]` (avoid introducing flag-only primary entrypoints like `osc --repo ... --issue ...` or `osc --repo ... --auto`)
 
 **Files / Modules**:
 - `src/cli/index.ts` (create - CLI entry point)
