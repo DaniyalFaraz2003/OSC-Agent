@@ -173,7 +173,7 @@ OSC-Agent implements intelligent model routing:
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md).
+We welcome contributions! To get started:
 
 ### Development Setup
 
@@ -199,7 +199,7 @@ npm run dev
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details
+MIT License
 
 ## Acknowledgments
 
