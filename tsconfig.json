@@ -5,9 +5,9 @@
     "lib": ["ES2022", "DOM"],
 
     /* Modules */
-    "module": "commonjs",
+    "module": "nodenext",
     "rootDir": "./src",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
 
     /* Emit */
@@ -36,6 +36,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
+    "isolatedModules": true,
 
     /* Completeness */
     "skipLibCheck": true

@@ -7,7 +7,7 @@
     "osc": "dist/index.js"
   },
   "scripts": {
-    "exec": "npx ts-node src/index.ts", 
+    "exec": "npx ts-node src/index.ts",
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "jest --passWithNoTests",
@@ -35,8 +35,9 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.12",
-    "@types/node": "^20.11.19",
+    "@types/dotenv": "^6.1.1",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.19.31",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.56.0",
@@ -48,5 +49,10 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "type-fest": "^5.4.3",
+    "yaml": "^2.4.1",
+    "zod": "^3.22.4"
+  }
 }

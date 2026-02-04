@@ -39,3 +39,25 @@ temp/
 # OS
 .DS_Store
 Thumbs.db
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+
+# Secrets & Local Config (CRITICAL)
+.env
+.env.local
+config.yaml
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System files
+.DS_Store
