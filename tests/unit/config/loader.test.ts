@@ -20,16 +20,10 @@ describe('Configuration Loader', () => {
   });
 
   it('should fail validation if required keys are missing', () => {
-    // Explicitly delete the keys from the test's process.env
     delete process.env.GITHUB_TOKEN;
     delete process.env.GEMINI_API_KEY;
     delete process.env.E2B_API_KEY;
 
-    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit called');
-    });
-
-    expect(() => loadConfig({})).toThrow('process.exit called');
-    exitSpy.mockRestore();
+    expect(() => loadConfig({})).toThrow('Invalid configuration:');
   });
 });
