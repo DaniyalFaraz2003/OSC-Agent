@@ -38,58 +38,60 @@ Before you begin, ensure you have the following installed:
 ### Setting Up Your Development Environment
 
 1. **Fork the Repository**
-   
+
    Click the "Fork" button at the top right of the [OSC-Agent repository](https://github.com/DaniyalFaraz2003/OSC-Agent) to create your own copy.
 
 2. **Clone Your Fork**
-   
+
    ```bash
    git clone https://github.com/YOUR-USERNAME/OSC-Agent.git
    cd OSC-Agent
    ```
 
 3. **Add Upstream Remote**
-   
+
    ```bash
    git remote add upstream https://github.com/DaniyalFaraz2003/OSC-Agent.git
    ```
 
 4. **Install Dependencies**
-   
+
    ```bash
    npm install
    ```
 
 5. **Set Up Configuration**
-   
+
    Create a `.env` file or `config.yaml` in the root directory:
-   
+
    **Option 1: Using .env file**
+
    ```env
    GITHUB_TOKEN=your_github_token
    GEMINI_API_KEY=your_gemini_api_key
    E2B_API_KEY=your_e2b_api_key
    ```
-   
+
    **Option 2: Using config.yaml**
+
    ```yaml
    github:
      token: YOUR_GITHUB_TOKEN
-     
+
    gemini:
      api_key: YOUR_GEMINI_API_KEY
-     model_tier: auto  # auto, basic, advanced
-     
+     model_tier: auto # auto, basic, advanced
+
    e2b:
      api_key: YOUR_E2B_API_KEY
-     
+
    testing:
      max_iterations: 3
      timeout: 300
    ```
 
 6. **Verify Setup**
-   
+
    ```bash
    npm run build
    npm test
@@ -130,11 +132,11 @@ Issues are labeled to help you find suitable tasks:
 1. **Check if the issue is already assigned** - If someone is already working on it, consider finding another issue or asking if you can collaborate.
 
 2. **Comment on the issue** to express your interest:
-   
+
    ```
    Hi! I'd like to work on this issue. Here's my proposed approach:
    [Briefly describe your plan]
-   
+
    Could you assign this to me?
    ```
 
@@ -167,6 +169,7 @@ git checkout -b "exact-issue-title-here"
 ```
 
 **Branch naming convention:**
+
 - Name your branch **exactly** as the issue title (with spaces replaced by hyphens and in lowercase)
 - For example, if the issue title is "Add Multi-Agent System", your branch should be: `add-multi-agent-system`
 - This ensures clear traceability between issues and branches
@@ -181,6 +184,7 @@ git checkout -b "exact-issue-title-here"
 ### 3. Follow the Development Plan
 
 Refer to `DEVELOPMENT_PLAN.md` for:
+
 - Project architecture understanding
 - Module dependencies
 - Implementation guidelines
@@ -228,6 +232,7 @@ git commit -m "fix: resolve issue with agent state management (#123)"
 ```
 
 **Commit message format:**
+
 ```
 <type>: <short description> (#issue-number)
 
@@ -235,6 +240,7 @@ git commit -m "fix: resolve issue with agent state management (#123)"
 ```
 
 **Types:**
+
 - `feat` - New feature
 - `fix` - Bug fix
 - `docs` - Documentation changes
@@ -272,13 +278,12 @@ If there are conflicts, resolve them locally before pushing.
 ### Submitting a Pull Request
 
 1. **Push Your Branch**
-   
+
    ```bash
    git push origin your-branch-name
    ```
 
 2. **Create the Pull Request**
-   
    - Go to your fork on GitHub
    - Click "Compare & pull request"
    - Select the base repository: `DaniyalFaraz2003/OSC-Agent`
@@ -286,33 +291,39 @@ If there are conflicts, resolve them locally before pushing.
    - Select your feature branch
 
 3. **Fill Out the PR Template**
-   
+
    Provide a clear description including:
-   
+
    ```markdown
    ## Description
+
    Brief description of what this PR does
-   
+
    ## Related Issue
+
    Fixes #<issue-number>
-   
+
    ## Type of Change
+
    - [ ] Bug fix
    - [ ] New feature
    - [ ] Documentation update
    - [ ] Refactoring
-   
+
    ## Changes Made
+
    - List key changes
    - One per line
-   
+
    ## Testing Done
+
    - Describe how you tested your changes
    - Include test scenarios covered
-   
+
    ## Screenshots (if applicable)
-   
+
    ## Checklist
+
    - [ ] Tests pass locally
    - [ ] Code follows style guidelines
    - [ ] Documentation updated
@@ -320,7 +331,7 @@ If there are conflicts, resolve them locally before pushing.
    ```
 
 4. **Link to the Issue**
-   
+
    Use keywords to automatically close the issue when the PR is merged:
    - `Fixes #123`
    - `Closes #123`
@@ -384,6 +395,7 @@ Sometimes PRs aren't accepted. Common reasons:
 - More discussion is needed on the approach
 
 Don't be discouraged! Use it as a learning opportunity and consider:
+
 - Discussing the feature in GitHub Discussions first
 - Opening an issue to discuss the approach before implementing
 - Making requested changes and resubmitting
@@ -417,19 +429,17 @@ Don't be discouraged! Use it as a learning opportunity and consider:
 - Keep README.md and other docs updated with your changes
 
 Example:
+
 ```typescript
 /**
  * Analyzes a GitHub issue and extracts key information.
- * 
+ *
  * @param issueUrl - The URL of the GitHub issue to analyze
  * @param options - Configuration options for the analysis
  * @returns A promise resolving to the analyzed issue data
  * @throws {InvalidUrlError} If the issue URL is malformed
  */
-async function analyzeIssue(
-  issueUrl: string,
-  options: AnalysisOptions
-): Promise<IssueAnalysis> {
+async function analyzeIssue(issueUrl: string, options: AnalysisOptions): Promise<IssueAnalysis> {
   // Implementation
 }
 ```
@@ -465,6 +475,7 @@ We follow a three-tier testing approach:
 - **Mock external services**: GitHub API, Gemini API, E2B Sandbox
 
 Example:
+
 ```typescript
 describe('IssueAnalyzer', () => {
   describe('analyzeIssue', () => {
@@ -486,9 +497,7 @@ describe('IssueAnalyzer', () => {
       const analyzer = new IssueAnalyzer();
 
       // Act & Assert
-      await expect(
-        analyzer.analyzeIssue('invalid-url')
-      ).rejects.toThrow(InvalidUrlError);
+      await expect(analyzer.analyzeIssue('invalid-url')).rejects.toThrow(InvalidUrlError);
     });
   });
 });
@@ -520,6 +529,7 @@ describe('IssueAnalyzer', () => {
 - Helping future contributors understand the reasoning
 
 **What to discuss in issue comments:**
+
 - Clarifying requirements
 - Proposing implementation approaches
 - Asking questions about the issue
@@ -528,15 +538,17 @@ describe('IssueAnalyzer', () => {
 - Requesting feedback on your approach
 
 **Example:**
+
 ```
-@maintainer I'm working on implementing the fix for this issue. 
-I noticed that approach A would be simpler but approach B would be 
+@maintainer I'm working on implementing the fix for this issue.
+I noticed that approach A would be simpler but approach B would be
 more maintainable. I'm leaning towards B. What do you think?
 ```
 
 ### Using GitHub Discussions
 
 For broader topics not tied to specific issues:
+
 - Feature ideas that need discussion before an issue is created
 - General questions about the project
 - Showing off what you've built with OSC-Agent
@@ -570,6 +582,7 @@ If you're stuck:
 ### Maintainer Team
 
 Current maintainers:
+
 - @DaniyalFaraz2003 - Project Lead
 
 ---
@@ -577,6 +590,7 @@ Current maintainers:
 ## Recognition
 
 We value all contributions, big or small! Contributors will be:
+
 - Listed in our CONTRIBUTORS.md file
 - Acknowledged in release notes
 - Highlighted in our community showcases

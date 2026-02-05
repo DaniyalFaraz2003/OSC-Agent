@@ -11,6 +11,7 @@
 OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contributor. It analyzes GitHub issues, searches codebases, generates fixes, tests them in sandboxes, and creates pull requests automatically.
 
 ### Technology Stack
+
 - **Runtime**: Node.js >= 18
 - **AI Models**: Google Gemini API
 - **Testing**: E2B Sandbox API
@@ -19,6 +20,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - **Orchestration**: Graph-based state machine
 
 ### Key Assumptions
+
 1. The project will use TypeScript for type safety and better developer experience
 2. The project will follow a modular architecture with clear separation of concerns
 3. Integration with external APIs (GitHub, Gemini, E2B) will use proper error handling and retry logic
@@ -38,6 +40,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Set up the base Node.js/TypeScript project with proper configuration files and directory structure.
 
 **Scope**:
+
 - Initialize npm project with proper metadata
 - Configure TypeScript with strict type checking
 - Set up ESLint and Prettier for code quality
@@ -46,6 +49,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Create .gitignore with appropriate exclusions
 
 **Files / Modules**:
+
 - `package.json` (create)
 - `tsconfig.json` (create)
 - `.eslintrc.json` (create)
@@ -58,6 +62,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: None
 
 **Definition of Done**:
+
 - [ ] package.json exists with name, version, description, scripts, and dependencies
 - [ ] TypeScript compiles successfully with strict mode enabled
 - [ ] ESLint runs without errors on empty src directory
@@ -73,12 +78,14 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create the complete directory structure as outlined in the README with placeholder index files.
 
 **Scope**:
+
 - Create all subdirectories under `src/`
 - Add index.ts files to each directory for barrel exports
 - Create parallel test directories under `tests/`
 - Set up config and docs folders
 
 **Files / Modules**:
+
 - `src/agents/index.ts` (create)
 - `src/orchestrator/index.ts` (create)
 - `src/search/index.ts` (create)
@@ -97,6 +104,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.1
 
 **Definition of Done**:
+
 - [ ] All directories exist with index.ts files
 - [ ] Index files export empty objects/functions (no errors)
 - [ ] Directory structure is based on the architecture described in README and extends it with the modules defined in this plan
@@ -109,6 +117,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Set up development tooling including Git hooks, VS Code settings, and documentation templates.
 
 **Scope**:
+
 - Configure Husky for Git hooks
 - Set up pre-commit hooks for linting and formatting
 - Create VS Code workspace settings
@@ -116,6 +125,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Create issue and PR templates
 
 **Files / Modules**:
+
 - `.husky/` directory (create)
 - `.husky/pre-commit` (create)
 - `.vscode/settings.json` (create)
@@ -127,6 +137,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.1
 
 **Definition of Done**:
+
 - [ ] Husky is configured and pre-commit hooks run
 - [ ] Pre-commit hook runs ESLint and Prettier on staged files
 - [ ] VS Code opens with recommended settings applied
@@ -140,12 +151,14 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Configure GitHub Actions for continuous integration and deployment.
 
 **Scope**:
+
 - Create CI workflow for testing and linting
 - Set up build verification workflow
 - Configure automated npm publishing workflow (disabled initially)
 - Add status badges to README
 
 **Files / Modules**:
+
 - `.github/workflows/ci.yml` (create)
 - `.github/workflows/build.yml` (create)
 - `.github/workflows/publish.yml` (create)
@@ -154,6 +167,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.1, Task 1.2
 
 **Definition of Done**:
+
 - [ ] CI workflow runs on every push and pull request
 - [ ] CI workflow includes linting, type checking, and tests
 - [ ] Build workflow verifies successful compilation
@@ -168,6 +182,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Implement a flexible configuration system supporting environment variables, .env files, and YAML config files.
 
 **Scope**:
+
 - Define TypeScript interfaces for all configuration options
 - Implement configuration loader with priority: CLI args > env vars > config file > defaults
 - Add schema validation using Zod or similar
@@ -175,6 +190,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Include example configuration files
 
 **Files / Modules**:
+
 - `src/config/types.ts` (create - configuration interfaces)
 - `src/config/loader.ts` (create - configuration loading logic)
 - `src/config/validator.ts` (create - schema validation)
@@ -186,6 +202,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.1, Task 1.2
 
 **Definition of Done**:
+
 - [ ] Configuration interfaces defined for github, gemini, e2b, and testing options
 - [ ] Configuration loader successfully reads from multiple sources
 - [ ] Priority order is correctly enforced (CLI > env > file > defaults)
@@ -205,6 +222,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create a robust GitHub API client with authentication, rate limiting, and error handling.
 
 **Scope**:
+
 - Implement authentication using personal access tokens
 - Create methods for fetching issues, repositories, and pull requests
 - Add methods for creating pull requests and comments
@@ -213,6 +231,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Include comprehensive error handling
 
 **Files / Modules**:
+
 - `src/github/client.ts` (create - main GitHub client class)
 - `src/github/types.ts` (create - GitHub-specific types)
 - `src/github/errors.ts` (create - custom error classes)
@@ -223,6 +242,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.5
 
 **Definition of Done**:
+
 - [ ] GitHub client can authenticate successfully
 - [ ] Methods exist for: listIssues, getIssue, createPR, createComment, getRepository
 - [ ] Rate limiting prevents API abuse and retries appropriately
@@ -238,6 +258,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create an AI-powered issue analyzer that extracts requirements, context, and metadata from GitHub issues.
 
 **Scope**:
+
 - Parse issue title and description
 - Extract code snippets and references from issue body
 - Identify issue type (bug, feature, documentation, etc.)
@@ -246,6 +267,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Generate structured analysis output
 
 **Files / Modules**:
+
 - `src/agents/issue-analyzer.ts` (create - main analyzer)
 - `src/agents/types.ts` (create - agent interfaces)
 - `src/agents/prompts/issue-analysis.ts` (create - AI prompts)
@@ -254,6 +276,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.5, Task 2.1
 
 **Definition of Done**:
+
 - [ ] Issue analyzer accepts GitHub issue object as input
 - [ ] Returns structured analysis with: type, complexity, requirements, affected_files
 - [ ] Handles issues with code blocks, links, and references correctly
@@ -268,6 +291,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create a wrapper for Google Gemini API with model routing, cost optimization, and response handling.
 
 **Scope**:
+
 - Implement Gemini API client with authentication
 - Create model router that selects appropriate model based on task complexity
 - Implement streaming and non-streaming response handling
@@ -276,6 +300,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Support prompt caching for repeated requests
 
 **Files / Modules**:
+
 - `src/agents/gemini-client.ts` (create - Gemini API wrapper)
 - `src/agents/model-router.ts` (create - intelligent model selection)
 - `src/agents/cost-tracker.ts` (create - usage tracking)
@@ -287,6 +312,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.5
 
 **Definition of Done**:
+
 - [ ] Gemini client successfully calls API with various prompts
 - [ ] Model router selects cost-effective models for simple tasks
 - [ ] Model router selects advanced models for complex tasks
@@ -304,6 +330,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create a code search utility that uses ripgrep for fast, context-aware searching.
 
 **Scope**:
+
 - Wrap ripgrep CLI with Node.js spawn/exec
 - Implement search methods for patterns, functions, classes, and imports
 - Add context extraction (lines before/after matches)
@@ -312,6 +339,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Parse ripgrep output into structured format
 
 **Files / Modules**:
+
 - `src/search/ripgrep.ts` (create - ripgrep wrapper)
 - `src/search/types.ts` (create - search result types)
 - `src/search/parsers.ts` (create - output parsers)
@@ -322,6 +350,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.5
 
 **Definition of Done**:
+
 - [ ] Code search successfully finds patterns in test repository
 - [ ] Search methods include: searchPattern, searchFunction, searchClass, searchImport
 - [ ] Context extraction returns N lines before/after matches
@@ -337,6 +366,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create an integration with E2B for safe code execution and testing in isolated environments.
 
 **Scope**:
+
 - Implement E2B API client with authentication
 - Create sandbox lifecycle management (create, execute, destroy)
 - Add file upload/download to sandbox
@@ -345,6 +375,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Support multiple programming languages
 
 **Files / Modules**:
+
 - `src/testing/e2b-client.ts` (create - E2B API client)
 - `src/testing/sandbox.ts` (create - sandbox management)
 - `src/testing/types.ts` (create - testing types)
@@ -355,6 +386,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.5
 
 **Definition of Done**:
+
 - [ ] E2B client successfully creates and destroys sandboxes
 - [ ] Files can be uploaded to sandbox
 - [ ] Commands can be executed and output captured
@@ -375,6 +407,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create an AI agent that generates code fixes based on issue analysis and code search results.
 
 **Scope**:
+
 - Design prompts for fix generation
 - Implement context building from issue and code search
 - Generate fix proposals with explanations
@@ -383,6 +416,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Generate diff/patch format output
 
 **Files / Modules**:
+
 - `src/agents/fix-generator.ts` (create - main fix generator)
 - `src/agents/prompts/fix-generation.ts` (create - fix prompts)
 - `src/agents/context-builder.ts` (create - builds context for AI)
@@ -392,6 +426,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 2.2, Task 2.3, Task 2.4
 
 **Definition of Done**:
+
 - [ ] Fix generator accepts issue analysis and code context
 - [ ] Generates valid code fixes in diff format
 - [ ] Includes explanation for each change
@@ -407,6 +442,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create an AI agent that reviews generated fixes for quality, correctness, and adherence to project standards.
 
 **Scope**:
+
 - Design prompts for code review
 - Check for common bugs and anti-patterns
 - Verify fix addresses the original issue
@@ -415,6 +451,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Generate review feedback and suggestions
 
 **Files / Modules**:
+
 - `src/agents/code-reviewer.ts` (create - main reviewer)
 - `src/agents/prompts/code-review.ts` (create - review prompts)
 - `src/agents/review-checklist.ts` (create - review criteria)
@@ -423,6 +460,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 2.3, Task 3.1
 
 **Definition of Done**:
+
 - [ ] Code reviewer accepts generated fix and original issue
 - [ ] Returns structured review with: approval, issues, suggestions
 - [ ] Identifies common bugs like null pointer errors
@@ -437,6 +475,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create an AI agent that generates tests for the proposed fixes.
 
 **Scope**:
+
 - Analyze fix to determine what needs testing
 - Generate unit tests for modified functions
 - Generate integration tests if needed
@@ -445,6 +484,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Generate test descriptions and assertions
 
 **Files / Modules**:
+
 - `src/agents/test-generator.ts` (create - test generation)
 - `src/agents/prompts/test-generation.ts` (create - test prompts)
 - `src/agents/test-analyzer.ts` (create - analyzes test needs)
@@ -453,6 +493,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 2.3, Task 3.1
 
 **Definition of Done**:
+
 - [ ] Test generator accepts fix and determines test requirements
 - [ ] Generates valid test code matching project framework
 - [ ] Includes positive, negative, and edge case tests
@@ -467,6 +508,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create a system that iteratively improves fixes based on test results and errors.
 
 **Scope**:
+
 - Design iteration workflow (generate -> test -> analyze -> refine)
 - Implement error analysis from test failures
 - Generate improved fixes based on errors
@@ -475,6 +517,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Determine success/failure criteria
 
 **Files / Modules**:
+
 - `src/agents/self-corrector.ts` (create - self-correction orchestrator)
 - `src/agents/error-analyzer.ts` (create - analyzes test failures)
 - `src/agents/iteration-tracker.ts` (create - tracks iterations)
@@ -483,6 +526,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 2.5, Task 3.1, Task 3.2, Task 3.3
 
 **Definition of Done**:
+
 - [ ] Self-corrector runs up to max iterations (configurable)
 - [ ] Each iteration analyzes failures and improves fix
 - [ ] Stops early if tests pass
@@ -498,6 +542,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create an AI agent that generates documentation for code changes.
 
 **Scope**:
+
 - Generate commit messages from fixes
 - Create PR descriptions with change summary
 - Document new functions and classes
@@ -506,6 +551,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Follow conventional commit format
 
 **Files / Modules**:
+
 - `src/agents/doc-generator.ts` (create - documentation generation)
 - `src/agents/prompts/documentation.ts` (create - doc prompts)
 - `src/agents/commit-formatter.ts` (create - formats commits)
@@ -514,6 +560,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 2.3, Task 3.1
 
 **Definition of Done**:
+
 - [ ] Documentation agent generates commit messages
 - [ ] Commit messages follow conventional commit format
 - [ ] PR descriptions include: summary, changes, testing, related issues
@@ -532,6 +579,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Design and document the state machine that manages the entire contribution workflow.
 
 **Scope**:
+
 - Define all possible states (IDLE, ANALYZING, SEARCHING, GENERATING, TESTING, REVIEWING, SUBMITTING, etc.)
 - Define transitions between states
 - Define triggers for state transitions
@@ -540,6 +588,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Define state persistence requirements
 
 **Files / Modules**:
+
 - `docs/STATE_MACHINE.md` (create - state machine documentation)
 - `docs/diagrams/state-machine.svg` (create - visual diagram)
 - `src/orchestrator/states.ts` (create - state definitions)
@@ -548,6 +597,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: None (design task)
 
 **Definition of Done**:
+
 - [ ] All states are documented with descriptions
 - [ ] All transitions are documented with conditions
 - [ ] State machine diagram is created and clear
@@ -562,6 +612,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Implement the core state machine engine that manages state and transitions.
 
 **Scope**:
+
 - Implement state storage and retrieval
 - Implement transition logic with guards
 - Add event-driven state changes
@@ -570,6 +621,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Implement state persistence to disk
 
 **Files / Modules**:
+
 - `src/orchestrator/state-machine.ts` (create - state machine implementation)
 - `src/orchestrator/state-store.ts` (create - state persistence)
 - `src/orchestrator/guards.ts` (create - transition guards)
@@ -579,6 +631,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 4.1
 
 **Definition of Done**:
+
 - [ ] State machine initializes in IDLE state
 - [ ] State transitions work correctly with guards
 - [ ] Events trigger appropriate transitions
@@ -595,6 +648,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create the main orchestrator that coordinates all agents using the state machine.
 
 **Scope**:
+
 - Implement workflow execution engine
 - Coordinate agent calls based on current state
 - Handle data flow between agents
@@ -603,6 +657,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Support pause/resume functionality
 
 **Files / Modules**:
+
 - `src/orchestrator/workflow.ts` (create - main workflow orchestrator)
 - `src/orchestrator/agent-coordinator.ts` (create - coordinates agents)
 - `src/orchestrator/data-flow.ts` (create - manages data between stages)
@@ -613,6 +668,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 4.2, Milestone 3 (all agent tasks)
 
 **Definition of Done**:
+
 - [ ] Workflow orchestrator executes full pipeline
 - [ ] Agents are called in correct order based on state
 - [ ] Data flows correctly between agents
@@ -629,6 +685,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create a queue system for managing multiple issues and autonomous operation.
 
 **Scope**:
+
 - Implement priority queue for issues
 - Add task scheduling logic
 - Support concurrent task execution (with limits)
@@ -637,6 +694,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Include queue management API (add, remove, pause, resume)
 
 **Files / Modules**:
+
 - `src/orchestrator/queue.ts` (create - task queue implementation)
 - `src/orchestrator/scheduler.ts` (create - task scheduling)
 - `src/orchestrator/queue-store.ts` (create - queue persistence)
@@ -645,6 +703,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 4.2, Task 4.3
 
 **Definition of Done**:
+
 - [ ] Queue can hold multiple tasks with priorities
 - [ ] Tasks are processed in priority order
 - [ ] Concurrent execution respects limits
@@ -661,6 +720,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Add comprehensive logging, metrics, and monitoring for the orchestration system.
 
 **Scope**:
+
 - Implement structured logging with levels
 - Add performance metrics collection
 - Track agent execution times
@@ -669,6 +729,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Add debug mode with verbose logging
 
 **Files / Modules**:
+
 - `src/utils/logger.ts` (create - structured logger)
 - `src/utils/metrics.ts` (create - metrics collection)
 - `src/utils/analytics.ts` (create - workflow analytics)
@@ -678,6 +739,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 4.3
 
 **Definition of Done**:
+
 - [ ] Structured logs are written for all major events
 - [ ] Log levels (debug, info, warn, error) work correctly
 - [ ] Metrics track: execution time, API calls, costs, success rate
@@ -698,6 +760,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Set up the CLI framework with command parsing, help text, and version display.
 
 **Scope**:
+
 - Choose and integrate CLI framework (Commander.js recommended)
 - Implement main CLI entry point
 - Add version and help commands
@@ -707,6 +770,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
   `osc [global options] <command> [command options]` (avoid introducing flag-only primary entrypoints like `osc --repo ... --issue ...` or `osc --repo ... --auto`)
 
 **Files / Modules**:
+
 - `src/cli/index.ts` (create - CLI entry point)
 - `src/cli/commands/index.ts` (create - command registry)
 - `src/cli/banner.ts` (create - ASCII banner)
@@ -716,6 +780,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 1.5
 
 **Definition of Done**:
+
 - [ ] `osc --version` displays version number
 - [ ] `osc --help` displays usage information
 - [ ] Global options (--verbose, --config) work correctly
@@ -731,6 +796,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create the main command for processing a single GitHub issue.
 
 **Scope**:
+
 - Implement `osc --repo <owner/repo> --issue <number>` command
 - Add options for: --auto-pr, --dry-run, --branch
 - Validate repository and issue inputs
@@ -739,6 +805,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Handle interruption (Ctrl+C) gracefully
 
 **Files / Modules**:
+
 - `src/cli/commands/issue.ts` (create - issue command)
 - `src/cli/validators.ts` (create - input validation)
 - `src/cli/formatters.ts` (create - output formatting)
@@ -747,6 +814,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 5.1, Task 4.3
 
 **Definition of Done**:
+
 - [ ] Command successfully processes a GitHub issue
 - [ ] All options work as expected
 - [ ] Input validation catches invalid repos/issues
@@ -763,6 +831,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create the autonomous mode that continuously processes issues from a repository.
 
 **Scope**:
+
 - Implement `osc --repo <owner/repo> --auto` command
 - Add options for: --max-issues, --interval, --filters
 - Implement issue filtering (labels, complexity, age)
@@ -771,6 +840,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Support resume from previous session
 
 **Files / Modules**:
+
 - `src/cli/commands/auto.ts` (create - autonomous mode)
 - `src/cli/dashboard.ts` (create - status dashboard)
 - `src/cli/filters.ts` (create - issue filtering)
@@ -779,6 +849,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 5.1, Task 4.4
 
 **Definition of Done**:
+
 - [ ] Autonomous mode fetches and processes issues automatically
 - [ ] Issue filtering works correctly
 - [ ] Dashboard shows: queue size, current task, completed, failed
@@ -794,6 +865,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create commands for managing configuration interactively.
 
 **Scope**:
+
 - Implement `osc config init` to create config file
 - Implement `osc config validate` to check configuration
 - Implement `osc config show` to display current config
@@ -802,6 +874,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Support multiple profiles (different configs)
 
 **Files / Modules**:
+
 - `src/cli/commands/config.ts` (create - config commands)
 - `src/cli/prompts.ts` (create - interactive prompts)
 - `src/cli/config-validator.ts` (create - validates and tests config)
@@ -810,6 +883,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 5.1, Task 1.5
 
 **Definition of Done**:
+
 - [ ] `osc config init` creates config file with prompts
 - [ ] `osc config validate` checks config and tests API connections
 - [ ] `osc config show` displays current configuration
@@ -825,6 +899,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create commands to check status and view history of past operations.
 
 **Scope**:
+
 - Implement `osc status` to show current workflow state
 - Implement `osc history` to list past operations
 - Add detailed view for specific operation
@@ -833,6 +908,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Display cost summary in history
 
 **Files / Modules**:
+
 - `src/cli/commands/status.ts` (create - status command)
 - `src/cli/commands/history.ts` (create - history command)
 - `src/cli/history-store.ts` (create - history persistence)
@@ -841,6 +917,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 5.1, Task 4.5
 
 **Definition of Done**:
+
 - [ ] `osc status` displays current workflow state
 - [ ] `osc history` lists past operations with key info
 - [ ] History can be filtered by repo, status, date
@@ -861,6 +938,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create comprehensive unit tests for all core modules with high coverage.
 
 **Scope**:
+
 - Write unit tests for configuration system
 - Write unit tests for GitHub client
 - Write unit tests for Gemini integration
@@ -869,6 +947,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Achieve >= 80% code coverage for each module
 
 **Files / Modules**:
+
 - `tests/unit/config/*.test.ts` (create/expand)
 - `tests/unit/github/*.test.ts` (create/expand)
 - `tests/unit/agents/*.test.ts` (create/expand)
@@ -878,6 +957,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 2 (all tasks)
 
 **Definition of Done**:
+
 - [ ] All core modules have unit tests
 - [ ] Tests use proper mocking for external dependencies
 - [ ] Edge cases and error conditions are tested
@@ -893,6 +973,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create integration tests that verify interactions between components.
 
 **Scope**:
+
 - Test GitHub API integration with actual API
 - Test Gemini API integration with actual API
 - Test E2B sandbox integration with actual API
@@ -901,6 +982,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Mock only when API quotas are a concern
 
 **Files / Modules**:
+
 - `tests/integration/github/*.test.ts` (create/expand)
 - `tests/integration/agents/*.test.ts` (create/expand)
 - `tests/integration/testing/*.test.ts` (create/expand)
@@ -909,6 +991,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 3, Milestone 4
 
 **Definition of Done**:
+
 - [ ] Integration tests cover key workflows
 - [ ] Tests use real API calls (with test accounts)
 - [ ] Tests verify data flow between components
@@ -924,6 +1007,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create E2E tests that verify the complete user journey from CLI to PR creation.
 
 **Scope**:
+
 - Create test repository with known issues
 - Test issue processing end-to-end
 - Test autonomous mode
@@ -932,6 +1016,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Verify PR creation in test repository
 
 **Files / Modules**:
+
 - `tests/e2e/workflows/*.test.ts` (create)
 - `tests/fixtures/test-repo/` (create - test repository setup)
 - `tests/fixtures/issues.json` (create - test issue data)
@@ -939,6 +1024,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 5 (all CLI tasks)
 
 **Definition of Done**:
+
 - [ ] E2E tests cover full workflows
 - [ ] Test repository is set up with known issues
 - [ ] Tests verify actual PR creation
@@ -954,6 +1040,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create performance tests to ensure the tool operates efficiently.
 
 **Scope**:
+
 - Benchmark code search performance on large repositories
 - Test concurrent issue processing
 - Measure API rate limit efficiency
@@ -962,6 +1049,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Set performance budgets
 
 **Files / Modules**:
+
 - `tests/performance/*.test.ts` (create)
 - `tests/performance/benchmarks.ts` (create)
 - `docs/PERFORMANCE.md` (create - performance documentation)
@@ -969,6 +1057,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 4, Milestone 5
 
 **Definition of Done**:
+
 - [ ] Performance tests exist for key operations
 - [ ] Benchmarks are documented with baseline numbers
 - [ ] Performance budgets are defined
@@ -984,6 +1073,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Add security testing to identify and prevent vulnerabilities.
 
 **Scope**:
+
 - Scan dependencies for known vulnerabilities
 - Test API token handling and storage
 - Verify input validation and sanitization
@@ -992,6 +1082,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Document security best practices
 
 **Files / Modules**:
+
 - `.github/workflows/security.yml` (create - security scanning)
 - `tests/security/*.test.ts` (create)
 - `docs/SECURITY.md` (create - security guidelines)
@@ -999,6 +1090,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: All previous tasks
 
 **Definition of Done**:
+
 - [ ] Dependency scanning runs in CI
 - [ ] No high/critical vulnerabilities in dependencies
 - [ ] API tokens are never logged or exposed
@@ -1018,6 +1110,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Generate comprehensive API documentation for all modules.
 
 **Scope**:
+
 - Set up TSDoc comments for all public APIs
 - Configure API documentation generator (TypeDoc)
 - Generate HTML documentation
@@ -1026,6 +1119,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Publish documentation to GitHub Pages
 
 **Files / Modules**:
+
 - Add TSDoc comments to all `src/**/*.ts` files
 - `typedoc.json` (create - TypeDoc configuration)
 - `docs/api/` (create - generated API docs)
@@ -1034,6 +1128,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: All implementation tasks
 
 **Definition of Done**:
+
 - [ ] All public APIs have TSDoc comments
 - [ ] TypeDoc generates documentation without errors
 - [ ] HTML documentation is clear and navigable
@@ -1048,6 +1143,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Write a comprehensive user guide for end users.
 
 **Scope**:
+
 - Write getting started guide
 - Document installation and setup
 - Create usage examples for all commands
@@ -1056,6 +1152,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Create tutorial for first contribution
 
 **Files / Modules**:
+
 - `docs/USER_GUIDE.md` (create)
 - `docs/GETTING_STARTED.md` (create)
 - `docs/TROUBLESHOOTING.md` (create)
@@ -1065,6 +1162,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 5 (CLI complete)
 
 **Definition of Done**:
+
 - [ ] User guide covers all features
 - [ ] Installation instructions are tested on fresh system
 - [ ] All command examples are tested and work
@@ -1079,6 +1177,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Write comprehensive documentation for contributors and developers.
 
 **Scope**:
+
 - Document architecture and design decisions
 - Create contribution guidelines
 - Write code style guide
@@ -1087,6 +1186,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Add development workflow documentation
 
 **Files / Modules**:
+
 - `docs/ARCHITECTURE.md` (create)
 - `CONTRIBUTING.md` (create)
 - `docs/CODE_STYLE.md` (create)
@@ -1097,6 +1197,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: All implementation tasks
 
 **Definition of Done**:
+
 - [ ] Architecture document explains all major components
 - [ ] Contributing guidelines are clear and actionable
 - [ ] Code style is documented with examples
@@ -1111,6 +1212,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Provide examples and templates for common use cases.
 
 **Scope**:
+
 - Create example configuration files
 - Add example GitHub workflows using OSC-Agent
 - Create example issue templates
@@ -1119,6 +1221,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Create example agent customizations
 
 **Files / Modules**:
+
 - `examples/configs/` (create directory with config examples)
 - `examples/workflows/` (create directory with workflow examples)
 - `examples/templates/` (create directory with templates)
@@ -1128,6 +1231,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: All implementation tasks
 
 **Definition of Done**:
+
 - [ ] At least 5 example configurations
 - [ ] At least 3 example workflows
 - [ ] Issue and PR templates provided
@@ -1142,6 +1246,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create video content demonstrating the tool's capabilities.
 
 **Scope**:
+
 - Record installation and setup demo
 - Record basic usage demo
 - Record autonomous mode demo
@@ -1150,6 +1255,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Upload videos to YouTube/platform
 
 **Files / Modules**:
+
 - `docs/videos/` (create directory for video links)
 - `docs/gifs/` (create directory for animated GIFs)
 - `README.md` (update with video links and GIFs)
@@ -1157,6 +1263,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 5, Task 7.2
 
 **Definition of Done**:
+
 - [ ] Installation demo video created (< 3 minutes)
 - [ ] Basic usage demo video created (< 5 minutes)
 - [ ] Autonomous mode demo created (< 5 minutes)
@@ -1175,6 +1282,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Optimize the package size and structure for npm distribution.
 
 **Scope**:
+
 - Configure files to include/exclude in npm package
 - Minify/bundle CLI for faster startup
 - Optimize dependencies (move to devDependencies where appropriate)
@@ -1183,6 +1291,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Verify all required files are included
 
 **Files / Modules**:
+
 - `package.json` (update - files, keywords, metadata)
 - `.npmignore` (create)
 - `scripts/bundle.js` (create - bundling script)
@@ -1190,6 +1299,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: All implementation tasks
 
 **Definition of Done**:
+
 - [ ] Package size is < 10MB
 - [ ] All necessary files included, unnecessary files excluded
 - [ ] package.json has complete metadata
@@ -1204,6 +1314,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Establish automated release process with versioning and changelog.
 
 **Scope**:
+
 - Set up semantic versioning
 - Configure automated changelog generation
 - Create GitHub release workflow
@@ -1212,6 +1323,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Document release process
 
 **Files / Modules**:
+
 - `.github/workflows/release.yml` (create)
 - `scripts/release.js` (create - release script)
 - `CHANGELOG.md` (create)
@@ -1220,6 +1332,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 8.1
 
 **Definition of Done**:
+
 - [ ] Release workflow triggers on version tags
 - [ ] Changelog is generated automatically
 - [ ] npm package is published automatically
@@ -1234,6 +1347,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create all assets needed for the initial release announcement.
 
 **Scope**:
+
 - Write release notes for v1.0.0
 - Create feature highlights
 - Prepare demo repository
@@ -1242,6 +1356,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Prepare social media posts
 
 **Files / Modules**:
+
 - `RELEASE_NOTES.md` (create - v1.0.0 notes)
 - `docs/press-kit/` (create directory with assets)
 - Demo repository (separate repo)
@@ -1250,6 +1365,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: All previous tasks
 
 **Definition of Done**:
+
 - [ ] Release notes are comprehensive and clear
 - [ ] Feature highlights are ready
 - [ ] Demo repository is set up and working
@@ -1264,6 +1380,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Set up infrastructure for community engagement and support.
 
 **Scope**:
+
 - Enable GitHub Discussions
 - Create discussion categories
 - Set up issue templates
@@ -1272,6 +1389,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Create community guidelines
 
 **Files / Modules**:
+
 - `.github/DISCUSSION_TEMPLATE/` (create)
 - `.github/ISSUE_TEMPLATE/config.yml` (create)
 - `CODE_OF_CONDUCT.md` (create)
@@ -1280,6 +1398,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: None (can be done in parallel)
 
 **Definition of Done**:
+
 - [ ] GitHub Discussions enabled with categories
 - [ ] Issue templates cover all use cases
 - [ ] Code of Conduct is in place
@@ -1294,6 +1413,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Conduct final review before initial release to ensure quality.
 
 **Scope**:
+
 - Review all documentation for accuracy
 - Test installation on multiple platforms (macOS, Linux, Windows)
 - Verify all examples and tutorials work
@@ -1303,12 +1423,14 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Get peer review from team
 
 **Files / Modules**:
+
 - `docs/RELEASE_CHECKLIST.md` (create)
 - Review findings and fixes across all files
 
 **Dependencies**: All previous tasks
 
 **Definition of Done**:
+
 - [ ] Documentation reviewed and corrected
 - [ ] Installation tested on macOS, Linux, Windows
 - [ ] All examples and tutorials verified working
@@ -1329,6 +1451,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Implement analytics to understand usage and identify issues.
 
 **Scope**:
+
 - Add opt-in telemetry for usage statistics
 - Track error rates and types
 - Monitor API usage patterns
@@ -1337,6 +1460,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Respect user privacy and GDPR
 
 **Files / Modules**:
+
 - `src/utils/telemetry.ts` (create - opt-in telemetry)
 - `src/utils/error-reporter.ts` (create - error reporting)
 - `docs/PRIVACY.md` (create - privacy policy)
@@ -1345,6 +1469,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 8 (post-release)
 
 **Definition of Done**:
+
 - [ ] Telemetry is opt-in with clear consent
 - [ ] Error reporting captures useful debug info
 - [ ] Analytics dashboard shows key metrics
@@ -1359,6 +1484,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Set up systems to collect and organize user feedback.
 
 **Scope**:
+
 - Create feedback form
 - Set up feature request process
 - Review and iterate on existing bug report template from Task 1.3
@@ -1367,6 +1493,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Create public roadmap based on feedback
 
 **Files / Modules**:
+
 - `.github/ISSUE_TEMPLATE/feedback.yml` (create)
 - `docs/FEEDBACK.md` (create)
 - Public roadmap (GitHub Projects)
@@ -1374,6 +1501,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 8.4
 
 **Definition of Done**:
+
 - [ ] Feedback form is accessible from CLI and docs
 - [ ] Feature requests have clear process
 - [ ] Bug reports collect necessary information
@@ -1388,6 +1516,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Design and plan support for multiple programming languages.
 
 **Scope**:
+
 - Identify top 5 languages to support (Python, Java, Go, Rust, Ruby)
 - Design language-agnostic architecture
 - Create language-specific modules
@@ -1396,6 +1525,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Create issue for each language implementation
 
 **Files / Modules**:
+
 - `docs/LANGUAGE_SUPPORT.md` (create - language support plan)
 - `docs/LANGUAGES/` (create directory for language docs)
 - GitHub issues for each language
@@ -1403,6 +1533,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 8
 
 **Definition of Done**:
+
 - [ ] Language support plan is documented
 - [ ] Architecture supports pluggable languages
 - [ ] Top 5 languages identified and prioritized
@@ -1417,6 +1548,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Plan advanced features for future releases.
 
 **Scope**:
+
 - Design custom agent training system
 - Plan team collaboration features
 - Design performance metrics dashboard
@@ -1425,6 +1557,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Create detailed specifications for each
 
 **Files / Modules**:
+
 - `docs/ROADMAP.md` (create - feature roadmap)
 - `docs/specs/` (create directory for feature specs)
 - `docs/specs/custom-agents.md` (create)
@@ -1435,6 +1568,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Milestone 8
 
 **Definition of Done**:
+
 - [ ] Roadmap lists all planned features with timelines
 - [ ] Each feature has detailed specification
 - [ ] Specifications include: goals, design, implementation plan
@@ -1449,6 +1583,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Description**: Create processes for ongoing maintenance and support.
 
 **Scope**:
+
 - Define release cadence (e.g., monthly minor, quarterly major)
 - Create dependency update schedule
 - Establish security patching process
@@ -1457,6 +1592,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 - Document maintenance procedures
 
 **Files / Modules**:
+
 - `docs/MAINTENANCE.md` (create - maintenance guide)
 - `docs/SUPPORT.md` (create - support guidelines)
 - `.github/workflows/dependency-update.yml` (create)
@@ -1464,6 +1600,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 **Dependencies**: Task 9.2
 
 **Definition of Done**:
+
 - [ ] Release cadence is defined and documented
 - [ ] Dependency updates automated (Dependabot or Renovate)
 - [ ] Security patching process is documented
@@ -1478,6 +1615,7 @@ OSC-Agent is an autonomous CLI tool that acts as an AI-powered open-source contr
 This development plan provides a comprehensive roadmap for building OSC-Agent from the ground up. The plan is organized into 9 milestones with 45 atomic tasks that can be independently assigned to developers.
 
 ### Key Metrics
+
 - **Total Milestones**: 9
 - **Total Tasks**: 45
 - **Estimated Timeline**: 12-16 weeks with 3-4 developers
@@ -1498,12 +1636,14 @@ The following tasks can be worked on in parallel to accelerate development:
 9. **Maintenance Phase** (Milestone 9): All tasks can be parallel
 
 ### Critical Path
+
 1. Milestone 1 → Milestone 2 → Milestone 3 → Milestone 4 → Milestone 5
 2. Milestones 6, 7 can happen in parallel with Milestone 5
 3. Milestone 8 requires all previous milestones
 4. Milestone 9 starts after Milestone 8
 
 ### Success Criteria
+
 - All tests pass with >= 80% coverage
 - Documentation is complete and accurate
 - Tool successfully contributes to a real open-source project
