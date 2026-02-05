@@ -54,9 +54,9 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "type-fest": "^5.4.3",
-    "yaml": "^2.4.1",
+    "yaml": "^2.8.2",
     "zod": "^3.22.4"
   }
 }
