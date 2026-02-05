@@ -9,13 +9,7 @@ import { defaults } from './defaults';
  * DeepPartial allows recursive partials of Config.
  * Useful for CLI and YAML overrides.
  */
-type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends (infer U)[]
-    ? DeepPartial<U>[]
-    : T[P] extends object
-    ? DeepPartial<T[P]>
-    : T[P];
-};
+type DeepPartial<T> = { [P in keyof T]?: T[P] extends (infer U)[] ? DeepPartial<U>[] : T[P] extends object ? DeepPartial<T[P]> : T[P] };
 
 export function loadConfig(cliOverrides: DeepPartial<Config> = {}): Config {
   dotenv.config();
@@ -27,14 +21,15 @@ export function loadConfig(cliOverrides: DeepPartial<Config> = {}): Config {
   const yamlPath = path.join(process.cwd(), 'config.yaml');
   if (fs.existsSync(yamlPath)) {
     const yamlFile = fs.readFileSync(yamlPath, 'utf8');
-    const parsedYaml = YAML.parse(yamlFile);
+    const parsedYaml = YAML.parse(yamlFile) as Record<string, unknown>;
+
     if (parsedYaml) {
       deepMerge(config, parsedYaml);
     }
   }
 
   // 3. Merge ENV only if values exist
-  const envConfig = {
+  const envConfig: Record<string, unknown> = {
     github: {
       token: process.env.GITHUB_TOKEN,
     },
@@ -56,36 +51,24 @@ export function loadConfig(cliOverrides: DeepPartial<Config> = {}): Config {
   const result = ConfigSchema.safeParse(config);
 
   if (!result.success) {
-    throw new Error(
-      'Invalid configuration:\n' +
-        JSON.stringify(result.error.format(), null, 2)
-    );
+    throw new Error('Invalid configuration:\n' + JSON.stringify(result.error.format(), null, 2));
   }
 
   return result.data;
 }
 
 /** Merge all keys */
-function deepMerge(
-  target: Record<string, unknown>,
-  source: Record<string, unknown>
-): void {
+function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): void {
   for (const key in source) {
     const sourceValue = source[key];
     const targetValue = target[key];
 
-    if (
-      sourceValue &&
-      typeof sourceValue === 'object' &&
-      !Array.isArray(sourceValue)
-    ) {
+    if (sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
       if (!targetValue || typeof targetValue !== 'object') {
         target[key] = {};
       }
-      deepMerge(
-        target[key] as Record<string, unknown>,
-        sourceValue as Record<string, unknown>
-      );
+
+      deepMerge(target[key] as Record<string, unknown>, sourceValue as Record<string, unknown>);
     } else if (sourceValue !== undefined) {
       target[key] = sourceValue;
     }
@@ -93,26 +76,17 @@ function deepMerge(
 }
 
 /** Merge only defined values (for ENV) */
-function deepMergeDefined(
-  target: Record<string, unknown>,
-  source: Record<string, unknown>
-): void {
+function deepMergeDefined(target: Record<string, unknown>, source: Record<string, unknown>): void {
   for (const key in source) {
     const sourceValue = source[key];
     const targetValue = target[key];
 
-    if (
-      sourceValue &&
-      typeof sourceValue === 'object' &&
-      !Array.isArray(sourceValue)
-    ) {
+    if (sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
       if (!targetValue || typeof targetValue !== 'object') {
         target[key] = {};
       }
-      deepMergeDefined(
-        target[key] as Record<string, unknown>,
-        sourceValue as Record<string, unknown>
-      );
+
+      deepMergeDefined(target[key] as Record<string, unknown>, sourceValue as Record<string, unknown>);
     } else if (sourceValue !== undefined) {
       target[key] = sourceValue;
     }
