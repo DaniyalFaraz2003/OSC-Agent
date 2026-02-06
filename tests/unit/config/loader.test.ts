@@ -1,4 +1,9 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+
+jest.mock('dotenv', () => ({
+  config: jest.fn(),
+}));
+
 import { loadConfig } from '../../../src/config/loader';
 
 describe('Configuration Loader', () => {
