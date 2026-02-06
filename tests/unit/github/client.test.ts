@@ -32,12 +32,12 @@ describe('GitHubClient Unit Tests', () => {
 
   it('should fetch a repository correctly', async () => {
     const mockRepo = { name: 'test-repo', full_name: 'owner/test-repo' };
-    mockedAxios.get.mockResolvedValueOnce({ data: mockRepo });
+    mockAxiosInstance.get.mockResolvedValueOnce({ data: mockRepo });
 
     const repo = await client.getRepository('owner', 'test-repo');
     expect(repo.name).toBe('test-repo');
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(mockedAxios.get).toHaveBeenCalledWith('/repos/owner/test-repo');
+    expect(mockAxiosInstance.get).toHaveBeenCalledWith('/repos/owner/test-repo');
   });
 
   it('listIssues should fetch an array of issues', async () => {

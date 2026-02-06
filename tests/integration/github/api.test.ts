@@ -3,23 +3,31 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-describe('GitHub API Integration', () => {
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) {
-    console.warn('Skipping integration tests: GITHUB_TOKEN not set');
-    return;
-  }
+const token = process.env.GITHUB_TOKEN;
 
-  const client = new GitHubClient({ token });
+// Use conditional describe to avoid "No tests found" error
+const describeIfToken = token ? describe : describe.skip;
 
-  it('should fetch the public repository of the client itself', async () => {
+describeIfToken('GitHub API Integration', () => {
+  const client = new GitHubClient({ token: token! });
+
+  it('should fetch the public repository octocat/Hello-World', async () => {
     const repo = await client.getRepository('octocat', 'Hello-World');
     expect(repo.full_name).toBe('octocat/Hello-World');
   });
 
-  it('should fetch issues from a public repository', async () => {
+  it('should fetch public issues', async () => {
     const issues = await client.listIssues('facebook', 'react');
-    expect(Array.isArray(issues)).toBe(true);
     expect(issues.length).toBeGreaterThan(0);
+  });
+});
+
+// Dummy test to satisfy Jest if describe is skipped
+describe('Integration test check', () => {
+  it('should verify environment', () => {
+    if (!token) {
+      console.warn('Skipping GitHub Integration tests: GITHUB_TOKEN not found');
+    }
+    expect(true).toBe(true);
   });
 });

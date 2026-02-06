@@ -2,6 +2,7 @@ import { AxiosResponse } from 'axios';
 
 export class RateLimiter {
   static getWaitTime(response: AxiosResponse): number | null {
+    if (!response || !response.headers) return null;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const remaining: number = parseInt(response.headers['x-ratelimit-remaining'] as string, 10);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
