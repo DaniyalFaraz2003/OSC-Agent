@@ -11,7 +11,7 @@ describeIntegration('E2B Integration', () => {
 
   beforeAll(async () => {
     // We can safely instantiate now because this block only runs if apiKey exists
-    manager = new SandboxManager(apiKey);
+    manager = new SandboxManager(apiKey!);
     await manager.init({ timeoutMs: 60000 });
   }, 30000); // 30s timeout for E2B sandbox startup
 
