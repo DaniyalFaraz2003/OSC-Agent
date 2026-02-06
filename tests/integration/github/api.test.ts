@@ -14,12 +14,12 @@ describeIfToken('GitHub API Integration', () => {
   it('should fetch the public repository octocat/Hello-World', async () => {
     const repo = await client.getRepository('octocat', 'Hello-World');
     expect(repo.full_name).toBe('octocat/Hello-World');
-  });
+  }, 15000);
 
   it('should fetch public issues', async () => {
     const issues = await client.listIssues('facebook', 'react');
     expect(issues.length).toBeGreaterThan(0);
-  });
+  }, 15000);
 });
 
 // Dummy test to satisfy Jest if describe is skipped

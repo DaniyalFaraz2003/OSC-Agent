@@ -1,0 +1,15 @@
+[33mf2ba96f[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/task-2.2-issue-analyzer[m[33m)[m Implement AI-powered issue analyzer (#9)
+[33m6aed647[m[33m ([m[1;31mupstream/main[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mmain[m[33m)[m Merge pull request #34 from DaniyalFaraz2003/2.5-E2B-Sandbox-implementation
+[33m6357714[m[33m ([m[1;31mupstream/2.5-E2B-Sandbox-implementation[m[33m)[m Merge branch 'main' into 2.5-E2B-Sandbox-implementation
+[33ma7892ff[m Merge pull request #28 from DaniyalFaraz2003/task-2.4-ripgrep-search
+[33m9622a2a[m Corrected linting
+[33maa66b63[m Apply suggestion from @Copilot
+[33m6891c8f[m Fixed copilot suggestions
+[33m6a96050[m Apply suggestion from @Copilot
+[33mb06a146[m Apply suggestion from @Copilot
+[33m4a9ec20[m Apply suggestion from @Copilot
+[33m0e28d4e[m[33m ([m[1;31mupstream/task-2.4-ripgrep-search[m[33m)[m feat(search): implement ripgrep wrapper, parsers, and search utilities for Task 2.4
+[33m3ed24a3[m E2B Sandbox implementation
+[33m024e625[m test: update loader test to match new validation behavior
+[33md4bf7cb[m fix: resolve lint issues in config loader
+[33m6e6fbe5[m fix(config): correct priority order and improve error handling in loader

@@ -22,8 +22,8 @@ describe('Gemini API Integration', () => {
 
   it('should use cache for repeated requests', async () => {
     const prompt = 'Repeat the word: Avocado';
-    await client.generate(prompt);
-    const secondResponse = await client.generate(prompt);
+    await client.generate(prompt, { taskComplexity: 'low' });
+    const secondResponse = await client.generate(prompt, { taskComplexity: 'low' });
     expect(secondResponse.cached).toBe(true);
   }, 15000);
 });
