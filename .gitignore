@@ -60,4 +60,4 @@ yarn-error.log*
 
 # System files
 .DS_Store
-t.coverage
+t:coverage
