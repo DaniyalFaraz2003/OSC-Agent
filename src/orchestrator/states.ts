@@ -10,9 +10,10 @@ export interface PersistedState {
   updatedAt: string;
   attempt: number;
   context: Record<string, unknown>;
+  history: State[];
   error?: {
     code: string;
     message: string;
-    details?: unknown;
+    details?: string;
   };
 }
