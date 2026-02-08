@@ -1,5 +1,7 @@
 import { Command } from 'commander';
 import { registerIssueCommand } from './issue';
+import { registerStatusCommand } from './status';
+import { registerHistoryCommand } from './history';
 
 /**
  * Register all subcommands here
@@ -13,13 +15,7 @@ export function registerCommands(program: Command): void {
       console.log('Initializing with options:', options);
     });
 
-  // Example of another command
-  program
-    .command('status')
-    .description('Check the status of the project')
-    .action(() => {
-      console.log('Project is healthy.');
-    });
-
+  registerStatusCommand(program);
+  registerHistoryCommand(program);
   registerIssueCommand(program);
 }

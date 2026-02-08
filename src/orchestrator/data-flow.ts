@@ -61,6 +61,10 @@ export interface WorkflowData {
   testResult?: TestResult;
   reviewResult?: ReviewResult;
   submission?: SubmissionResult;
+  costMetrics?: {
+    totalCost: number;
+    totalTokens: number;
+  };
 }
 
 // ── Workflow Result ─────────────────────────────────────────────────────
@@ -128,5 +132,6 @@ export function contextToWorkflowData(context: Record<string, unknown>): Workflo
     testResult: context.testResult as WorkflowData['testResult'],
     reviewResult: context.reviewResult as WorkflowData['reviewResult'],
     submission: context.submission as WorkflowData['submission'],
+    costMetrics: context.costMetrics as WorkflowData['costMetrics'],
   };
 }
