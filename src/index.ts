@@ -3,8 +3,10 @@
  * Main entry point
  */
 
+import './cli';
+
 export const version = '0.1.0';
 
 export function main(): void {
-  console.log('OSC-Agent initialized');
+  // Entry point logic if needed
 }
