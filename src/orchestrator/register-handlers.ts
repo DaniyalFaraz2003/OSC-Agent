@@ -52,12 +52,16 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
         .slice(0, 3);
 
       for (const w of words) {
-        const rg = await runRipgrep({ pattern: w, cwd: process.cwd(), context: 2 });
-        for (const hit of rg.slice(0, 3)) {
-          const abs = path.resolve(process.cwd(), hit.file);
-          if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
-            results.push({ filePath: hit.file, content: fs.readFileSync(abs, 'utf8') });
+        try {
+          const rg = await runRipgrep({ pattern: w, cwd: process.cwd(), context: 2 });
+          for (const hit of rg.slice(0, 3)) {
+            const abs = path.resolve(process.cwd(), hit.file);
+            if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
+              results.push({ filePath: hit.file, content: fs.readFileSync(abs, 'utf8') });
+            }
           }
+        } catch {
+          // If ripgrep isn't installed or fails, we still want the workflow to proceed.
         }
       }
     }
