@@ -6,6 +6,7 @@ import { AgentCoordinator } from './agent-coordinator';
 import { RecoveryManager } from './recovery';
 import type { ErrorClassification } from './recovery';
 import { type WorkflowInput, type WorkflowData, type WorkflowResult, type WorkflowStatus, SUCCESS_TRIGGERS, workflowDataToContext, contextToWorkflowData } from './data-flow';
+import { OrchestratorMonitor } from './monitor';
 
 // ── Logger ──────────────────────────────────────────────────────────────
 
@@ -241,7 +242,9 @@ export class WorkflowOrchestrator {
     const stateStart = Date.now();
 
     try {
-      const result = await this.coordinator.execute(state, this.data);
+      const result = await OrchestratorMonitor.traceExecution(state, this.runId, async () => {
+        return await this.coordinator.execute(state, this.data);
+      });
       this.data = { ...this.data, ...result };
 
       const elapsed = Date.now() - stateStart;

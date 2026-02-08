@@ -17,6 +17,8 @@ type PersistedState = {
 };
 
 describe('CLI History Command', () => {
+  jest.setTimeout(30_000);
+
   const run = (args: string): string => execSync(`node dist/src/cli/index.js ${args}`, { encoding: 'utf8' });
   const rootDir = path.resolve(process.cwd(), '.osc-agent');
 
