@@ -4,7 +4,7 @@
   "description": "Open Source Contributing Agent - Autonomous CLI that acts as an AI open-source contributor",
   "main": "dist/index.js",
   "bin": {
-    "osc": "dist/index.js"
+    "osc": "./bin/osc.js"
   },
   "scripts": {
     "exec": "npx ts-node src/index.ts",
@@ -58,8 +58,11 @@
     "@e2b/code-interpreter": "^2.3.3",
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.13.4",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
     "diff": "^8.0.3",
     "dotenv": "^16.6.1",
+    "is-ci": "^4.1.0",
     "type-fest": "^5.4.3",
     "yaml": "^2.8.2",
     "zod": "^3.22.4"
