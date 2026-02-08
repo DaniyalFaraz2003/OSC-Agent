@@ -14,7 +14,7 @@ export function runRipgrep(options: SearchOptions): Promise<SearchResult[]> {
       args.push('-t', options.fileType);
     }
 
-    const rg = spawn('rg', args, { cwd: options.cwd || process.cwd() });
+    const rg = spawn('rg', args, { cwd: options.cwd || process.cwd(), stdio: ['ignore', 'pipe', 'pipe'] });
 
     let output = '';
     let error = '';
