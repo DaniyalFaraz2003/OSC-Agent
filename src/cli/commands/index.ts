@@ -9,11 +9,10 @@ export function registerCommands(program: Command): void {
     .command('init')
     .description('Initialize a new workspace')
     .option('-t, --template <name>', 'Template to use')
-    .action((options) => {
+    .action((options: Record<string, unknown>) => {
       console.log('Initializing with options:', options);
     });
 
-  // Example of another command
   program
     .command('status')
     .description('Check the status of the project')

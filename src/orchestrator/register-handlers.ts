@@ -6,6 +6,8 @@ import { GeminiClient } from '../agents/gemini-client';
 import { IssueAnalyzer } from '../agents/issue-analyzer';
 import type { CodeSearchResult } from '../agents/context-builder';
 import { FixGenerator } from '../agents/fix-generator';
+import { CodeReviewerAgent } from '../agents/code-reviewer';
+import { DocumentationGenerator } from '../agents/doc-generator';
 import { runRipgrep } from '../search/ripgrep';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -23,12 +25,16 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
   const gh = new GitHubClient({ token: params.config.github.token });
   const gemini = new GeminiClient(params.config.gemini.api_key);
 
+  // ── ANALYZING ─────────────────────────────────────────────────────────
+
   coordinator.registerHandler('ANALYZING', async () => {
     const issue = await gh.getIssue(params.owner, params.repo, params.issueNumber);
     const analyzer = new IssueAnalyzer({ gemini: params.config.gemini }, gemini);
     const analysis = await analyzer.analyzeIssue(issue);
     return { issue, analysis };
   });
+
+  // ── SEARCHING ─────────────────────────────────────────────────────────
 
   coordinator.registerHandler('SEARCHING', async (ctx: Readonly<WorkflowData>) => {
     const analysis = ctx.analysis;
@@ -61,13 +67,15 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
             }
           }
         } catch {
-          // If ripgrep isn't installed or fails, we still want the workflow to proceed.
+          // ripgrep may not be installed; continue without search results
         }
       }
     }
 
     return { searchResults: results };
   });
+
+  // ── PLANNING ──────────────────────────────────────────────────────────
 
   coordinator.registerHandler('PLANNING', (ctx: Readonly<WorkflowData>) => {
     const analysis = ctx.analysis;
@@ -80,6 +88,8 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
 
     return Promise.resolve({ plan });
   });
+
+  // ── GENERATING ────────────────────────────────────────────────────────
 
   coordinator.registerHandler('GENERATING', async (ctx: Readonly<WorkflowData>) => {
     const issue = ctx.issue;
@@ -98,6 +108,8 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
     const fixProposal = await fixGenerator.generateFix(issueDescription, analysisText, searchResults);
     return { fixProposal };
   });
+
+  // ── APPLYING ──────────────────────────────────────────────────────────
 
   coordinator.registerHandler('APPLYING', (ctx: Readonly<WorkflowData>) => {
     const fixProposal = ctx.fixProposal;
@@ -130,6 +142,8 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
     return Promise.resolve({ applyResult: { appliedFiles, patchCount: fixProposal.patches.length } });
   });
 
+  // ── BUILDING ──────────────────────────────────────────────────────────
+
   coordinator.registerHandler('BUILDING', () => {
     if (params.runtime.dryRun) {
       return Promise.resolve({ buildResult: { success: true, output: 'dry-run', errors: [] } });
@@ -143,6 +157,8 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
       return Promise.resolve({ buildResult: { success: false, output: msg, errors: [msg] } });
     }
   });
+
+  // ── TESTING ───────────────────────────────────────────────────────────
 
   coordinator.registerHandler('TESTING', () => {
     if (params.runtime.dryRun) {
@@ -158,16 +174,87 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
     }
   });
 
-  coordinator.registerHandler('REVIEWING', () => {
-    return Promise.resolve({ reviewResult: { approved: true, summary: 'Auto-approved', issues: [], suggestions: [] } });
+  // ── REVIEWING ─────────────────────────────────────────────────────────
+
+  coordinator.registerHandler('REVIEWING', async (ctx: Readonly<WorkflowData>) => {
+    if (params.runtime.dryRun) {
+      return { reviewResult: { approved: true, summary: 'Skipped (dry-run)', issues: [], suggestions: [] } };
+    }
+
+    const issue = ctx.issue;
+    const fixProposal = ctx.fixProposal;
+
+    if (!issue || !fixProposal) {
+      return { reviewResult: { approved: true, summary: 'Auto-approved (insufficient data for review)', issues: [], suggestions: [] } };
+    }
+
+    const reviewer = new CodeReviewerAgent(gemini);
+    const issueDescription = `${issue.title}\n\n${issue.body ?? ''}`;
+    const fixDescription = `${fixProposal.explanation}\n\nPatches:\n${fixProposal.patches.join('\n---\n')}`;
+
+    const reviewResult = await reviewer.review(issueDescription, fixDescription);
+    return { reviewResult };
   });
 
-  coordinator.registerHandler('SUBMITTING', () => {
-    return Promise.resolve({ submission: { prNumber: 0, prUrl: '', commitMessage: '' } });
+  // ── SUBMITTING ────────────────────────────────────────────────────────
+
+  coordinator.registerHandler('SUBMITTING', async (ctx: Readonly<WorkflowData>) => {
+    const issue = ctx.issue;
+    const fixProposal = ctx.fixProposal;
+
+    if (params.runtime.dryRun || !params.runtime.autoPr) {
+      // Generate commit message even in dry-run for display purposes
+      let commitMessage = `fix: address issue #${params.issueNumber}`;
+
+      if (issue && fixProposal) {
+        try {
+          const docGen = new DocumentationGenerator(gemini);
+          const issueDescription = `${issue.title}\n\n${issue.body ?? ''}`;
+          const fixDescription = fixProposal.explanation;
+          const commitResult = await docGen.generateCommitMessage(issueDescription, fixDescription);
+          commitMessage = commitResult.formatted.raw;
+        } catch {
+          // Use fallback commit message
+        }
+      }
+
+      return { submission: { prNumber: 0, prUrl: '', commitMessage } };
+    }
+
+    // Real PR path (requires autoPr)
+    const branch = `osc/${params.owner}-${params.repo}-issue-${params.issueNumber}`;
+    let commitMessage = `fix: address issue #${params.issueNumber}`;
+
+    if (issue && fixProposal) {
+      try {
+        const docGen = new DocumentationGenerator(gemini);
+        const issueDescription = `${issue.title}\n\n${issue.body ?? ''}`;
+        const fixDescription = fixProposal.explanation;
+        const commitResult = await docGen.generateCommitMessage(issueDescription, fixDescription);
+        commitMessage = commitResult.formatted.raw;
+      } catch {
+        // Use fallback commit message
+      }
+    }
+
+    try {
+      execSync(`git checkout -b ${branch}`, { stdio: 'pipe' });
+      execSync('git add -A', { stdio: 'pipe' });
+      execSync(`git commit -m "${commitMessage}"`, { stdio: 'pipe' });
+      execSync(`git push -u origin ${branch}`, { stdio: 'pipe' });
+
+      const pr = await gh.createPR(params.owner, params.repo, commitMessage, branch, 'main');
+      return { submission: { prNumber: pr.number, prUrl: pr.html_url, commitMessage } };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new Error(`Failed to create PR: ${msg}`);
+    }
   });
 
   return coordinator;
 }
+
+// ── Helpers ─────────────────────────────────────────────────────────────
 
 function guessPatchFilePath(patchText: string): string | undefined {
   const lines = patchText.split(/\r?\n/);

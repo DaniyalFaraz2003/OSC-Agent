@@ -18,7 +18,7 @@ export class ModelRouter {
     // Heuristic: Long prompts or specific keywords suggest complexity
     const isComplex = wordCount > 1000 || /reason|analyze|complex|architect|optimize|debug/i.test(prompt);
 
-    if (isComplex) return 'gemini-2.5-flash-lite';
+    if (isComplex) return 'gemini-2.5-flash-lite'; //temporarily set this to flash. Else there should be a bigger model in use here
 
     // Default to a balanced model
     return 'gemini-2.5-flash-lite'; //temporarily set this to flash. Else there should be a bigger model in use here
