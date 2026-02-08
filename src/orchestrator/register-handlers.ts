@@ -23,47 +23,25 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
   const gh = new GitHubClient({ token: params.config.github.token });
   const gemini = new GeminiClient(params.config.gemini.api_key);
 
+  const getCostMetrics = (): { totalCost: number; totalTokens: number } => {
+    return gemini.getGlobalMetrics();
+  };
+
   coordinator.registerHandler('ANALYZING', async () => {
     const issue = await gh.getIssue(params.owner, params.repo, params.issueNumber);
     const analyzer = new IssueAnalyzer({ gemini: params.config.gemini }, gemini);
     const analysis = await analyzer.analyzeIssue(issue);
-    return { issue, analysis };
+    return { issue, analysis, costMetrics: getCostMetrics() };
   });
 
   coordinator.registerHandler('SEARCHING', async (ctx: Readonly<WorkflowData>) => {
     const analysis = ctx.analysis;
     const issue = ctx.issue;
 
-    const results: CodeSearchResult[] = [];
-
-    const candidateFiles = analysis?.affected_files?.length ? analysis.affected_files : [];
-
-    for (const filePath of candidateFiles.slice(0, 8)) {
-      const abs = path.resolve(process.cwd(), filePath);
-      if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
-        results.push({ filePath, content: fs.readFileSync(abs, 'utf8') });
-      }
-    }
-
+    const results = readCandidateFiles(analysis?.affected_files);
     if (!results.length && issue?.title) {
-      const words = issue.title
-        .split(/\s+/)
-        .filter((w) => w.length > 3)
-        .slice(0, 3);
-
-      for (const w of words) {
-        try {
-          const rg = await runRipgrep({ pattern: w, cwd: process.cwd(), context: 2 });
-          for (const hit of rg.slice(0, 3)) {
-            const abs = path.resolve(process.cwd(), hit.file);
-            if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
-              results.push({ filePath: hit.file, content: fs.readFileSync(abs, 'utf8') });
-            }
-          }
-        } catch {
-          // If ripgrep isn't installed or fails, we still want the workflow to proceed.
-        }
-      }
+      const extra = await searchByIssueTitle(issue.title);
+      results.push(...extra);
     }
 
     return { searchResults: results };
@@ -96,7 +74,7 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
     const analysisText = JSON.stringify(analysis);
 
     const fixProposal = await fixGenerator.generateFix(issueDescription, analysisText, searchResults);
-    return { fixProposal };
+    return { fixProposal, costMetrics: getCostMetrics() };
   });
 
   coordinator.registerHandler('APPLYING', (ctx: Readonly<WorkflowData>) => {
@@ -167,6 +145,45 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
   });
 
   return coordinator;
+}
+
+function readCandidateFiles(affectedFiles: unknown): CodeSearchResult[] {
+  const files = Array.isArray(affectedFiles) ? affectedFiles : [];
+  const results: CodeSearchResult[] = [];
+
+  for (const f of files.slice(0, 8)) {
+    if (typeof f !== 'string') continue;
+    const abs = path.resolve(process.cwd(), f);
+    if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
+      results.push({ filePath: f, content: fs.readFileSync(abs, 'utf8') });
+    }
+  }
+
+  return results;
+}
+
+async function searchByIssueTitle(title: string): Promise<CodeSearchResult[]> {
+  const results: CodeSearchResult[] = [];
+  const words = title
+    .split(/\s+/)
+    .filter((w) => w.length > 3)
+    .slice(0, 3);
+
+  for (const w of words) {
+    try {
+      const rg = await runRipgrep({ pattern: w, cwd: process.cwd(), context: 2 });
+      for (const hit of rg.slice(0, 3)) {
+        const abs = path.resolve(process.cwd(), hit.file);
+        if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
+          results.push({ filePath: hit.file, content: fs.readFileSync(abs, 'utf8') });
+        }
+      }
+    } catch {
+      // If ripgrep isn't installed or fails, we still want the workflow to proceed.
+    }
+  }
+
+  return results;
 }
 
 function guessPatchFilePath(patchText: string): string | undefined {

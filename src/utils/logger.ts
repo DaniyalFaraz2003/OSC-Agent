@@ -21,8 +21,11 @@ export class Logger {
 
   constructor(options?: { level?: LogLevel; logFile?: string }) {
     if (options?.level !== undefined) this.level = options.level;
-    if (options?.logFile) {
-      this.logFilePath = path.resolve(options.logFile);
+
+    const envLogPath = process.env.LOG_FILE_PATH;
+    const resolvedLogFile = envLogPath ?? options?.logFile;
+    if (resolvedLogFile) {
+      this.logFilePath = path.resolve(resolvedLogFile);
       this.ensureLogDir();
     }
 

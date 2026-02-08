@@ -6,6 +6,8 @@ import { AgentCoordinator } from './agent-coordinator';
 import { RecoveryManager } from './recovery';
 import type { ErrorClassification } from './recovery';
 import { type WorkflowInput, type WorkflowData, type WorkflowResult, type WorkflowStatus, SUCCESS_TRIGGERS, workflowDataToContext, contextToWorkflowData } from './data-flow';
+import { OrchestratorMonitor } from './monitor';
+import { logger as structuredLogger } from '../utils/logger';
 
 // ── Logger ──────────────────────────────────────────────────────────────
 
@@ -44,6 +46,26 @@ export class ConsoleWorkflowLogger implements WorkflowLogger {
   private format(level: string, message: string, data?: Record<string, unknown>): string {
     const base = `${this.prefix} ${level.padEnd(5)} ${message}`;
     return data ? `${base} ${JSON.stringify(data)}` : base;
+  }
+}
+
+class StructuredWorkflowLogger implements WorkflowLogger {
+  constructor(private runId: string) {}
+
+  info(message: string, data?: Record<string, unknown>): void {
+    structuredLogger.info(message, { runId: this.runId, ...(data ?? {}) });
+  }
+
+  warn(message: string, data?: Record<string, unknown>): void {
+    structuredLogger.warn(message, { runId: this.runId, ...(data ?? {}) });
+  }
+
+  error(message: string, data?: Record<string, unknown>): void {
+    structuredLogger.error(message, { runId: this.runId, ...(data ?? {}) });
+  }
+
+  debug(message: string, data?: Record<string, unknown>): void {
+    structuredLogger.debug(message, { runId: this.runId, ...(data ?? {}) });
   }
 }
 
@@ -102,7 +124,7 @@ export class WorkflowOrchestrator {
 
     this.coordinator = options.coordinator;
     this.recovery = new RecoveryManager(options.maxAttempts ?? 3);
-    this.logger = options.logger ?? new ConsoleWorkflowLogger(this.runId);
+    this.logger = options.logger ?? new StructuredWorkflowLogger(this.runId);
     this.data = { input: { owner: '', repo: '', issueNumber: 0 } };
   }
 
@@ -241,7 +263,9 @@ export class WorkflowOrchestrator {
     const stateStart = Date.now();
 
     try {
-      const result = await this.coordinator.execute(state, this.data);
+      const result = await OrchestratorMonitor.traceExecution(state, this.runId, async () => {
+        return await this.coordinator.execute(state, this.data);
+      });
       this.data = { ...this.data, ...result };
 
       const elapsed = Date.now() - stateStart;
