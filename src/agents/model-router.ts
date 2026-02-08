@@ -9,7 +9,7 @@ export class ModelRouter {
     }
 
     // 2. Route by complexity
-    if (options.taskComplexity === 'high') return 'gemini-2.5-flash-lite';
+    if (options.taskComplexity === 'high') return 'gemini-2.5-flash-lite'; //temporarily set this to flash. Else there should be a bigger model in use here
     if (options.taskComplexity === 'low') return 'gemini-2.5-flash-lite';
 
     // 3. Heuristic routing based on prompt length and content
@@ -21,11 +21,11 @@ export class ModelRouter {
     if (isComplex) return 'gemini-2.5-flash-lite';
 
     // Default to a balanced model
-    return 'gemini-2.5-flash-lite';
+    return 'gemini-2.5-flash-lite'; //temporarily set this to flash. Else there should be a bigger model in use here
   }
 
   private getModelByTier(tier: ModelTier): string {
     const model = Object.values(GEMINI_MODELS).find((m) => m.tier === tier);
-    return model?.id || 'gemini-2.5-flash-lite';
+    return model?.id || 'gemini-2.5-flash-lite'; //temporarily set this to flash. Else there should be a bigger model in use here
   }
 }
