@@ -56,9 +56,7 @@ export class Logger {
     const entry = this.formatEntry(level, message, context);
     const logString = JSON.stringify(entry);
 
-    // Console output logic: use simple console.log for now, perhaps colored if needed.
-    // Upstream used colors directly. I will use a similar approach but maybe cleaner for CLI.
-    // For now, mirroring upstream behavior:
+    // Console output
     const color = level === LogLevel.ERROR ? '\x1b[31m' : level === LogLevel.WARN ? '\x1b[33m' : '';
     console.log(`${color}[${entry.timestamp}] ${entry.level}: ${entry.message}\x1b[0m`, context || '');
 
