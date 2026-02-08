@@ -6,6 +6,10 @@ export type { WorkflowOptions, WorkflowLogger } from './workflow';
 export { AgentCoordinator } from './agent-coordinator';
 export type { StateHandler } from './agent-coordinator';
 
+// ── Coordinator Builders ────────────────────────────────────────────────
+export { createIssueWorkflowCoordinator } from './register-handlers';
+export type { IssueWorkflowRuntimeOptions } from './register-handlers';
+
 // ── Data Flow ───────────────────────────────────────────────────────────
 export { SUCCESS_TRIGGERS, OPERATIONAL_STATES, workflowDataToContext, contextToWorkflowData } from './data-flow';
 export type { WorkflowInput, WorkflowData, WorkflowResult, WorkflowStatus, PlanStep, ApplyResult, BuildResult, SubmissionResult } from './data-flow';

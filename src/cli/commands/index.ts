@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import { registerIssueCommand } from './issue';
 
 /**
  * Register all subcommands here
@@ -19,4 +20,6 @@ export function registerCommands(program: Command): void {
     .action(() => {
       console.log('Project is healthy.');
     });
+
+  registerIssueCommand(program);
 }
