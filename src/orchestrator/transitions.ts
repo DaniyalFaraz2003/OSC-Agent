@@ -1,9 +1,9 @@
 import { State } from './states';
 
-export type Trigger = 'ANALYSIS_OK' | 'SEARCH_OK' | 'PLAN_OK' | 'GENERATION_OK' | 'APPLY_OK' | 'BUILD_OK' | 'TEST_OK' | 'REVIEW_OK' | 'SUBMIT_OK' | 'PAUSE' | 'RESUME' | 'CANCEL' | 'FAIL' | 'RETRY';
+export type Trigger = 'START' | 'ANALYSIS_OK' | 'SEARCH_OK' | 'PLAN_OK' | 'GENERATION_OK' | 'APPLY_OK' | 'BUILD_OK' | 'TEST_OK' | 'REVIEW_OK' | 'SUBMIT_OK' | 'PAUSE' | 'RESUME' | 'CANCEL' | 'FAIL' | 'RETRY';
 
 export const transitions: Record<State, Partial<Record<Trigger, State>>> = {
-  IDLE: {},
+  IDLE: { START: 'ANALYZING' },
   ANALYZING: { ANALYSIS_OK: 'SEARCHING' },
   SEARCHING: { SEARCH_OK: 'PLANNING' },
   PLANNING: { PLAN_OK: 'GENERATING' },

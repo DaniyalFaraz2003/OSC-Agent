@@ -41,6 +41,14 @@ export class StateMachine {
     return { ...this.context };
   }
 
+  getAttempt(): number {
+    return this.attempt;
+  }
+
+  getRunId(): string {
+    return this.runId;
+  }
+
   async transition(
     trigger: Trigger,
     payload?: {
@@ -55,11 +63,22 @@ export class StateMachine {
     const fromState = this.state;
     let nextState: State | undefined;
 
-    // 1. Handle Resume/Retry (Highest Priority: Dynamic Recovery)
-    if (trigger === 'RESUME' || trigger === 'RETRY') {
+    // 1a. Handle Resume (Dynamic Recovery via History)
+    if (trigger === 'RESUME') {
       nextState = this.history.pop();
-      if (!nextState) nextState = 'IDLE'; // Fallback
-      if (trigger === 'RETRY') this.attempt++;
+      if (!nextState) nextState = 'IDLE';
+    }
+
+    // 1b. Handle Retry (Prefer explicit transition map, fallback to history)
+    if (trigger === 'RETRY') {
+      this.attempt++;
+      const mapped = transitions[this.state]?.[trigger];
+      if (mapped) {
+        nextState = mapped;
+      } else {
+        nextState = this.history.pop();
+        if (!nextState) nextState = 'IDLE';
+      }
     }
 
     // 2. Handle Global Overrides (Control Triggers)
