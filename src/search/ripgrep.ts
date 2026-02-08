@@ -19,6 +19,14 @@ export function runRipgrep(options: SearchOptions): Promise<SearchResult[]> {
     let output = '';
     let error = '';
 
+    rg.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'ENOENT') {
+        reject(new Error('ripgrep (rg) is not installed or not on PATH. Install it from https://github.com/BurntSushi/ripgrep or skip code search.'));
+      } else {
+        reject(err);
+      }
+    });
+
     rg.stdout.on('data', (data: Buffer) => {
       output += data.toString();
     });

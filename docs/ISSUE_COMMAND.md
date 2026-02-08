@@ -53,6 +53,21 @@ When the command runs, the orchestrator executes nine states in sequence:
 | 8   | **REVIEWING**  | AI-powered code review (skipped in dry-run)               |
 | 9   | **SUBMITTING** | Creates PR if `--auto-pr` is set                          |
 
+## Ripgrep (optional)
+
+The **SEARCHING** stage uses [ripgrep](https://github.com/BurntSushi/ripgrep) (`rg`) to find relevant files in your local codebase when the issue analysis does not list specific files. If ripgrep is **not** installed or not on your PATH:
+
+- The workflow does **not** fail. The SEARCHING step continues with no search results (e.g. only files from the analysis, if any).
+- You may get fewer or less targeted code matches for fix generation.
+
+**To install ripgrep:**
+
+- **Windows:** `winget install BurntSushi.ripgrep.MSVC` or download from the [releases](https://github.com/BurntSushi/ripgrep/releases) and add to PATH.
+- **macOS:** `brew install ripgrep`
+- **Linux:** Use your package manager (e.g. `apt install ripgrep`, `dnf install ripgrep`).
+
+Ensure `rg` is on your PATH so the `osc issue` command can run it during SEARCHING.
+
 ## Dry-Run Mode
 
 With `--dry-run`, the command executes the full analysis and code generation pipeline but skips all write operations:
