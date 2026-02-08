@@ -25,6 +25,14 @@ export { StateMachineEvents } from './events';
 export { transitions } from './transitions';
 export { transitionGuards } from './guards';
 
+// ── Queue System ────────────────────────────────────────────────────────
+export { TaskQueue } from './queue';
+export type { Task, TaskStatus } from './queue';
+export { QueueStore } from './queue-store';
+export type { PersistedQueue } from './queue-store';
+export { TaskScheduler } from './scheduler';
+export type { SchedulerOptions } from './scheduler';
+
 // ── Types ───────────────────────────────────────────────────────────────
 export type { State, CoreState, ControlState, PersistedState } from './states';
 export type { Trigger } from './transitions';
