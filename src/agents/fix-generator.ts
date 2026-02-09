@@ -32,6 +32,8 @@ export class FixGenerator {
     const response = await this.client.generate(prompt, {
       temperature: 0.2, // Low temperature for consistent code generation
       useCache: true,
+      // Strongly prefer pure JSON output for easier parsing.
+      responseMimeType: 'application/json',
     });
 
     console.log(`  Parsing AI response...`);
@@ -79,14 +81,29 @@ export class FixGenerator {
   }
 
   private parseResponse(content: string) {
+    // First pass: strip common markdown code fences and try direct JSON parse.
+    const cleaned = content.replace(/```json|```/g, '').trim();
+
     try {
-      // Remove markdown code blocks if Gemini accidentally included them
-      const cleaned = content.replace(/```json|```/g, '').trim();
       return JSON.parse(cleaned);
-    } catch (e) {
-      const preview = content.length > 500 ? content.slice(0, 500) + '...[truncated]' : content;
+    } catch {
+      // Second pass: try to recover the first JSON object within the text by
+      // slicing between the first '{' and the last '}'.
+      const firstBrace = cleaned.indexOf('{');
+      const lastBrace = cleaned.lastIndexOf('}');
+
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        const jsonSlice = cleaned.slice(firstBrace, lastBrace + 1);
+        try {
+          return JSON.parse(jsonSlice);
+        } catch {
+          // fall through to error handling below
+        }
+      }
+
+      const preview = cleaned.length > 500 ? cleaned.slice(0, 500) + '...[truncated]' : cleaned;
       console.error('[FixGenerator] Raw AI response:', preview);
-      throw new Error(`Failed to parse AI fix proposal as JSON. The AI might have returned text instead of code. ` + `Response preview: "${preview.slice(0, 200)}..."`);
+      throw new Error('Failed to parse AI fix proposal as JSON. The AI might have returned text instead of code. ' + `Response preview: "${preview.slice(0, 200)}..."`);
     }
   }
 }

@@ -23,9 +23,18 @@ ${context}
 ### STRATEGY
 ${strategyInstructions[strategy]}
 
-### OUTPUT FORMAT
+### OUTPUT FORMAT (STRICT JSON)
 
-You must return a valid JSON object. Do NOT wrap it in markdown code blocks.
+You must return a valid JSON object.
+
+- Return **ONLY** raw JSON. No prose, no explanations, no markdown.
+- Do **NOT** wrap it in any markdown code fences or surround it with backticks.
+- Do **NOT** include comments, trailing commas, or any non-JSON syntax.
+- The first non-whitespace character in your response must be an opening brace {.
+- The last non-whitespace character in your response must be a closing brace }.
+
+The JSON must have this exact shape (you can change the values, add more
+changes, and extend the explanation text, but not the key names):
 
 {
   "explanation": "Clear explanation of what you changed and why",
