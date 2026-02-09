@@ -65,7 +65,7 @@ export function registerIssueCommand(program: Command): void {
     .requiredOption('--repo <owner/repo>', 'Repository slug (owner/repo)')
     .requiredOption('--issue <number>', 'Issue number')
     .option('--auto-pr', 'Automatically apply changes and create a PR (no prompts)', false)
-    .option('--dry-run', 'Preview only — analyze and show diffs without modifying files (default)', true)
+    .option('--dry-run', 'Preview only — analyze and show diffs without modifying files', false)
     .option('--branch <name>', 'Branch name for the PR')
     .option('--verbose', 'Show detailed output')
     .action(async (options: IssueCommandOptions) => {
@@ -114,8 +114,8 @@ export async function executeIssueCommand(options: IssueCommandOptions, globalVe
     const verbose = globalVerbose || Boolean(options.verbose);
     const autoPr = Boolean(options.autoPr);
 
-    // dry-run defaults to true; --auto-pr forces it off
-    const dryRun = autoPr ? false : options.dryRun !== false;
+    // --dry-run is off by default (interactive mode); --auto-pr also forces it off
+    const dryRun = autoPr ? false : Boolean(options.dryRun);
 
     const branch = options.branch ? validateBranchName(options.branch) : defaultBranchName(owner, repo, issueNumber);
 
@@ -161,9 +161,7 @@ export async function executeIssueCommand(options: IssueCommandOptions, globalVe
     data = mergeData(data, await runPhase('Issue analysis', coordinator, 'ANALYZING', data));
 
     if (verbose && data.analysis) {
-      console.log(
-        formatVerboseAnalysis(data.analysis as { type: string; complexity: string; requirements: string[]; affected_files: string[] }),
-      );
+      console.log(formatVerboseAnalysis(data.analysis as { type: string; complexity: string; requirements: string[]; affected_files: string[] }));
     }
     console.log(formatSuccess('Issue analyzed'));
     assertNotInterrupted(interrupted);

@@ -25,11 +25,16 @@ export class FixGenerator {
     const context = ContextBuilder.build(issueDescription, analysis, searchResults);
     const prompt = getFixGenerationPrompt(issueDescription, analysis, context, strategy);
 
+    // Always log during generation since it's a slow operation (30-60s)
+    console.log(`  Calling Gemini API (prompt: ${Math.round(prompt.length / 1000)}KB, files: ${searchResults.length})...`);
+
     // Call your GeminiClient
     const response = await this.client.generate(prompt, {
       temperature: 0.2, // Low temperature for consistent code generation
       useCache: true,
     });
+
+    console.log(`  Parsing AI response...`);
 
     const parsedOutput = this.parseResponse(response.content);
 
@@ -55,9 +60,12 @@ export class FixGenerator {
         const patch = DiffGenerator.generate(change, fullContent);
         if (patch) {
           patches.push(patch);
+          const mode = !change.originalCode || change.originalCode.trim() === '' ? (fullContent === '' ? 'new file' : 'full-file diff') : 'targeted replacement';
+          console.log(`  ✓ ${change.filePath} (${mode})`);
         }
       } catch (e) {
-        console.error(`Diff failed for ${change.filePath}:`, e);
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(`  ✗ ${change.filePath}: ${msg}`);
       }
     }
 
@@ -76,7 +84,9 @@ export class FixGenerator {
       const cleaned = content.replace(/```json|```/g, '').trim();
       return JSON.parse(cleaned);
     } catch (e) {
-      throw new Error('Failed to parse AI fix proposal as JSON. Content: ' + content);
+      const preview = content.length > 500 ? content.slice(0, 500) + '...[truncated]' : content;
+      console.error('[FixGenerator] Raw AI response:', preview);
+      throw new Error(`Failed to parse AI fix proposal as JSON. The AI might have returned text instead of code. ` + `Response preview: "${preview.slice(0, 200)}..."`);
     }
   }
 }

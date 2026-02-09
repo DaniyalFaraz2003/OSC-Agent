@@ -23,37 +23,43 @@ ${context}
 ### STRATEGY
 ${strategyInstructions[strategy]}
 
-### OUTPUT REQUIREMENTS
-You must return a valid JSON object. Do NOT wrap it in markdown code blocks (\`\`\`json).
-The JSON must follow this exact structure:
+### OUTPUT FORMAT
+
+You must return a valid JSON object. Do NOT wrap it in markdown code blocks.
+
 {
-  "explanation": "Detailed explanation of the changes and why they address the issue",
+  "explanation": "Clear explanation of what you changed and why",
   "confidenceScore": 0.95,
   "changes": [
     {
       "filePath": "relative/path/to/file.ts",
-      "originalCode": "exact code to replace — OR empty string for new files",
-      "replacementCode": "new code — for new files provide the COMPLETE file content"
+      "originalCode": "",
+      "replacementCode": "THE COMPLETE FILE CONTENT AFTER YOUR CHANGES"
     }
   ]
 }
 
 ### CRITICAL RULES
 
-**For MODIFYING existing files:**
-1. "originalCode" must be an EXACT, verbatim substring of the code shown in the CODE CONTEXT section.
-2. "replacementCode" replaces only that substring — keep surrounding code intact.
-3. Preserve existing indentation, coding style, and conventions.
+1. **ALWAYS set "originalCode" to an empty string: ""**
+   - For EVERY change (new files AND modifications to existing files).
+   - Do NOT try to copy code snippets from the context — just use "".
 
-**For CREATING new files (no existing source in context):**
-4. Set "originalCode" to an empty string: ""
-5. Set "replacementCode" to the COMPLETE, production-ready file content — including all imports, exports, types, and implementation.
-6. File paths must be relative to the project root (e.g., "src/utils/helper.ts", "tests/unit/helper.test.ts").
+2. **"replacementCode" must be the COMPLETE file content.**
+   - For existing files: provide the ENTIRE modified file (all imports, all functions, everything).
+   - For new files: provide the ENTIRE new file content.
+   - The system will automatically compute the diff against the existing file.
 
-**General:**
-7. You MUST return at least one change. NEVER return an empty "changes" array.
-8. If no source code context is provided, assume you need to CREATE new files.
-9. Include ALL files required to fully address the issue — do not leave partial implementations.
-10. Make sure every file is syntactically valid and can be used as-is.
+3. **File paths must be relative** to the project root (e.g., "src/utils/helper.ts").
+
+4. **You MUST return at least one change.** Never return an empty "changes" array.
+
+5. **Include ALL files** required to fully address the issue. Do not leave partial work.
+
+6. **Every file must be syntactically valid** TypeScript/JavaScript that compiles and runs.
+
+7. **Preserve existing code** that is unrelated to the issue. If modifying an existing file,
+   keep all the existing functions, imports, and logic that are not part of your fix.
+   Only change what is necessary.
 `;
 };

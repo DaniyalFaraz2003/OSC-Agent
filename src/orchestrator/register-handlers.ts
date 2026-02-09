@@ -182,8 +182,19 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
     const issueDescription = `${issue.title}\n\n${issue.body ?? ''}`;
     const analysisText = JSON.stringify(analysis);
 
-    const fixProposal = await fixGenerator.generateFix(issueDescription, analysisText, searchResults);
-    return { fixProposal };
+    // Add timeout (2 minutes) — Gemini can be slow for complex prompts
+    const timeoutMs = 120000;
+    const timeoutPromise = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('AI generation timed out after 2 minutes. The API might be slow or rate-limited. Try again.')), timeoutMs));
+
+    try {
+      const fixProposal = await Promise.race([fixGenerator.generateFix(issueDescription, analysisText, searchResults), timeoutPromise]);
+
+      return { fixProposal };
+    } catch (err) {
+      // Re-throw with better context
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Code generation failed: ${msg}`);
+    }
   });
 
   // ── APPLYING ──────────────────────────────────────────────────────────
@@ -349,14 +360,7 @@ function guessPatchFilePath(patchText: string): string | undefined {
  * common stop words and very short tokens.
  */
 function extractSearchKeywords(requirements: string[]): string[] {
-  const stopWords = new Set([
-    'implement', 'ensure', 'add', 'create', 'update', 'should', 'must',
-    'that', 'with', 'from', 'this', 'the', 'for', 'and', 'not', 'are',
-    'can', 'will', 'has', 'have', 'test', 'tests', 'file', 'code', 'data',
-    'make', 'also', 'need', 'into', 'when', 'each', 'only', 'more', 'than',
-    'under', 'over', 'between', 'through', 'during', 'before', 'after',
-    'define', 'document', 'identify', 'suite', 'runs', 'mode',
-  ]);
+  const stopWords = new Set(['implement', 'ensure', 'add', 'create', 'update', 'should', 'must', 'that', 'with', 'from', 'this', 'the', 'for', 'and', 'not', 'are', 'can', 'will', 'has', 'have', 'test', 'tests', 'file', 'code', 'data', 'make', 'also', 'need', 'into', 'when', 'each', 'only', 'more', 'than', 'under', 'over', 'between', 'through', 'during', 'before', 'after', 'define', 'document', 'identify', 'suite', 'runs', 'mode']);
 
   return requirements
     .flatMap((r) => r.split(/[\s,;.()]+/))
