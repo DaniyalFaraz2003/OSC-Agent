@@ -8,9 +8,28 @@ export interface CodeChange {
 }
 
 export class DiffGenerator {
+  /**
+   * Generate a unified diff patch for a single code change.
+   *
+   * Handles two modes:
+   * 1. **New file creation** — `originalCode` is empty/absent ⇒ patch from nothing to `replacementCode`.
+   * 2. **Existing file modification** — locate `originalCode` inside `fullFileContent`, replace, and diff.
+   */
   static generate(change: CodeChange, fullFileContent: string): string {
-    // If the full file content is provided, we can generate a high-quality unified diff
-    // For this implementation, we apply the change to the full content then diff the two versions
+    // ── New-file creation ───────────────────────────────────────────────
+    if (!change.originalCode || change.originalCode.trim() === '') {
+      if (!change.replacementCode || change.replacementCode.trim() === '') {
+        throw new Error(`Empty change for ${change.filePath} — both original and replacement are blank`);
+      }
+      // Ensure the new content ends with a trailing newline for clean diffs
+      const content = change.replacementCode.endsWith('\n')
+        ? change.replacementCode
+        : change.replacementCode + '\n';
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+      return createPatch(change.filePath, '', content);
+    }
+
+    // ── Existing-file modification ──────────────────────────────────────
     const updatedContent = fullFileContent.replace(change.originalCode, change.replacementCode);
 
     if (updatedContent === fullFileContent) {

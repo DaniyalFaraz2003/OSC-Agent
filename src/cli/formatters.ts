@@ -70,6 +70,39 @@ export function formatVerboseFix(fix: { explanation: string; confidenceScore: nu
   return formatVerboseSection('Generated Fix', lines.join('\n'));
 }
 
+// ── Diff display ────────────────────────────────────────────────────────
+
+/** Render a unified diff patch with syntax-aware coloring */
+export function formatDiffBlock(patch: string): string {
+  const lines = patch.split('\n');
+  return lines
+    .map((line) => {
+      if (line.startsWith('Index:') || line.startsWith('===')) {
+        return chalk.bold(line);
+      }
+      if (line.startsWith('---')) {
+        return chalk.bold.red(line);
+      }
+      if (line.startsWith('+++')) {
+        return chalk.bold.green(line);
+      }
+      if (line.startsWith('@@')) {
+        return chalk.cyan(line);
+      }
+      if (line.startsWith('+')) {
+        return chalk.green(line);
+      }
+      if (line.startsWith('-')) {
+        return chalk.red(line);
+      }
+      if (line.startsWith('\\')) {
+        return chalk.gray(line);
+      }
+      return line;
+    })
+    .join('\n');
+}
+
 // ── Final result ────────────────────────────────────────────────────────
 
 export function formatWorkflowResult(result: WorkflowResult, opts?: { dryRun?: boolean; verbose?: boolean }): string {

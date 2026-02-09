@@ -3,6 +3,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import fs from 'node:fs';
+import path from 'node:path';
 import { GeminiClient } from './gemini-client';
 import { getFixGenerationPrompt, FixStrategy } from './prompts/fix-generation';
 import { ContextBuilder, CodeSearchResult } from './context-builder';
@@ -31,19 +33,33 @@ export class FixGenerator {
 
     const parsedOutput = this.parseResponse(response.content);
 
-    const patches = parsedOutput.changes
-      .map((change: CodeChange) => {
-        const sourceFile = searchResults.find((r) => r.filePath === change.filePath);
-        if (!sourceFile) return '';
+    // Build patches — supports both modifying existing files and creating new ones.
+    const patches: string[] = [];
 
+    for (const change of (parsedOutput.changes ?? []) as CodeChange[]) {
+      // 1. Try search results first (already cached in memory)
+      let fullContent: string | undefined = searchResults.find((r) => r.filePath === change.filePath)?.content;
+
+      // 2. Fallback: try reading the file from disk (covers files that exist
+      //    but weren't included in search results)
+      if (fullContent === undefined) {
         try {
-          return DiffGenerator.generate(change, sourceFile.content);
-        } catch (e) {
-          console.error(`Diff failed for ${change.filePath}:`, e);
-          return '';
+          fullContent = fs.readFileSync(path.resolve(process.cwd(), change.filePath), 'utf8');
+        } catch {
+          // File doesn't exist — will be treated as new-file creation by DiffGenerator
+          fullContent = '';
         }
-      })
-      .filter((p: string) => p !== '');
+      }
+
+      try {
+        const patch = DiffGenerator.generate(change, fullContent);
+        if (patch) {
+          patches.push(patch);
+        }
+      } catch (e) {
+        console.error(`Diff failed for ${change.filePath}:`, e);
+      }
+    }
 
     return {
       explanation: parsedOutput.explanation,

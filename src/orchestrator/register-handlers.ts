@@ -19,7 +19,7 @@ export type IssueWorkflowRuntimeOptions = {
   autoPr: boolean;
 };
 
-export function createIssueWorkflowCoordinator(params: { config: Config; owner: string; repo: string; issueNumber: number; runtime: IssueWorkflowRuntimeOptions }): AgentCoordinator {
+export function createIssueWorkflowCoordinator(params: { config: Config; owner: string; repo: string; issueNumber: number; runtime: IssueWorkflowRuntimeOptions; branch?: string }): AgentCoordinator {
   const coordinator = new AgentCoordinator();
 
   const gh = new GitHubClient({ token: params.config.github.token });
@@ -41,34 +41,111 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
     const issue = ctx.issue;
 
     const results: CodeSearchResult[] = [];
+    const seen = new Set<string>();
+
+    /** Deduplicated helper — reads a file and pushes into results. */
+    const addFile = (filePath: string, maxLines?: number): boolean => {
+      if (seen.has(filePath)) return false;
+      const abs = path.resolve(process.cwd(), filePath);
+      try {
+        if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return false;
+        seen.add(filePath);
+        let content = fs.readFileSync(abs, 'utf8');
+        if (maxLines) {
+          content = content.split('\n').slice(0, maxLines).join('\n');
+        }
+        results.push({ filePath, content });
+        return true;
+      } catch {
+        return false;
+      }
+    };
 
     const candidateFiles = analysis?.affected_files?.length ? analysis.affected_files : [];
 
-    for (const filePath of candidateFiles.slice(0, 8)) {
-      const abs = path.resolve(process.cwd(), filePath);
-      if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
-        results.push({ filePath, content: fs.readFileSync(abs, 'utf8') });
-      }
+    // ── Strategy 1: Try affected files directly (works for existing files) ──
+    for (const filePath of candidateFiles.slice(0, 10)) {
+      addFile(filePath);
     }
 
-    if (!results.length && issue?.title) {
-      const words = issue.title
-        .split(/\s+/)
-        .filter((w) => w.length > 3)
-        .slice(0, 3);
+    // ── Strategy 2: When affected files don't exist, explore their parent
+    //    directories — gives context about the project area the issue targets ──
+    if (results.length === 0) {
+      for (const filePath of candidateFiles.slice(0, 5)) {
+        // Strip glob stars and get the directory
+        const dir = path.dirname(filePath.replace(/\*.*$/, ''));
+        if (!dir || dir === '.') continue;
 
-      for (const w of words) {
+        const absDir = path.resolve(process.cwd(), dir);
         try {
-          const rg = await runRipgrep({ pattern: w, cwd: process.cwd(), context: 2 });
-          for (const hit of rg.slice(0, 3)) {
-            const abs = path.resolve(process.cwd(), hit.file);
-            if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
-              results.push({ filePath: hit.file, content: fs.readFileSync(abs, 'utf8') });
+          if (fs.existsSync(absDir) && fs.statSync(absDir).isDirectory()) {
+            const entries = fs.readdirSync(absDir);
+            for (const entry of entries.slice(0, 5)) {
+              addFile(path.posix.join(dir, entry).replace(/\\/g, '/'), 250);
+              if (results.length >= 6) break;
             }
           }
         } catch {
-          // ripgrep may not be installed; continue without search results
+          /* permission error, etc. */
         }
+      }
+    }
+
+    // ── Strategy 3: Ripgrep with analysis-derived keywords ──────────────
+    if (results.length < 5 && analysis?.requirements?.length) {
+      const keywords = extractSearchKeywords(analysis.requirements);
+      for (const kw of keywords) {
+        if (results.length >= 8) break;
+        try {
+          const hits = await runRipgrep({ pattern: kw, cwd: process.cwd(), context: 0 });
+          const unique = deduplicateHitsByFile(hits);
+          for (const hit of unique.slice(0, 3)) {
+            addFile(hit.file, 250);
+          }
+        } catch {
+          /* ripgrep may not be installed */
+        }
+      }
+    }
+
+    // ── Strategy 4: Ripgrep with issue title words ──────────────────────
+    if (results.length < 5 && issue?.title) {
+      const words = issue.title
+        .split(/\s+/)
+        .filter((w) => w.length > 3)
+        .slice(0, 5);
+
+      for (const w of words) {
+        if (results.length >= 8) break;
+        try {
+          const hits = await runRipgrep({ pattern: w, cwd: process.cwd(), context: 0 });
+          const unique = deduplicateHitsByFile(hits);
+          for (const hit of unique.slice(0, 3)) {
+            addFile(hit.file, 250);
+          }
+        } catch {
+          /* ripgrep may not be installed */
+        }
+      }
+    }
+
+    // ── Strategy 5: Always include project context files ────────────────
+    addFile('package.json');
+    addFile('tsconfig.json');
+
+    // ── Strategy 6: Find existing similar files as templates ────────────
+    // If the issue asks for tests, find existing test files so the AI can
+    // mimic the project's testing patterns.
+    const wantsTests = candidateFiles.some((f) => /test/i.test(f));
+    if (wantsTests && results.length < 12) {
+      try {
+        const hits = await runRipgrep({ pattern: 'describe\\(', cwd: process.cwd(), context: 0 });
+        const testFiles = deduplicateHitsByFile(hits).slice(0, 3);
+        for (const hit of testFiles) {
+          addFile(hit.file, 150);
+        }
+      } catch {
+        /* ripgrep may not be installed */
       }
     }
 
@@ -222,7 +299,7 @@ export function createIssueWorkflowCoordinator(params: { config: Config; owner: 
     }
 
     // Real PR path (requires autoPr)
-    const branch = `osc/${params.owner}-${params.repo}-issue-${params.issueNumber}`;
+    const branch = params.branch ?? `osc/${params.owner}-${params.repo}-issue-${params.issueNumber}`;
     let commitMessage = `fix: address issue #${params.issueNumber}`;
 
     if (issue && fixProposal) {
@@ -265,4 +342,38 @@ function guessPatchFilePath(patchText: string): string | undefined {
     if (m2) return m2[1];
   }
   return undefined;
+}
+
+/**
+ * Extract meaningful search keywords from issue requirements, filtering out
+ * common stop words and very short tokens.
+ */
+function extractSearchKeywords(requirements: string[]): string[] {
+  const stopWords = new Set([
+    'implement', 'ensure', 'add', 'create', 'update', 'should', 'must',
+    'that', 'with', 'from', 'this', 'the', 'for', 'and', 'not', 'are',
+    'can', 'will', 'has', 'have', 'test', 'tests', 'file', 'code', 'data',
+    'make', 'also', 'need', 'into', 'when', 'each', 'only', 'more', 'than',
+    'under', 'over', 'between', 'through', 'during', 'before', 'after',
+    'define', 'document', 'identify', 'suite', 'runs', 'mode',
+  ]);
+
+  return requirements
+    .flatMap((r) => r.split(/[\s,;.()]+/))
+    .map((w) => w.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase())
+    .filter((w) => w.length > 3 && !stopWords.has(w))
+    .filter((w, i, arr) => arr.indexOf(w) === i)
+    .slice(0, 8);
+}
+
+/**
+ * Deduplicate ripgrep hits so we get at most one entry per unique file path.
+ */
+function deduplicateHitsByFile(hits: { file: string }[]): { file: string }[] {
+  const seen = new Set<string>();
+  return hits.filter((h) => {
+    if (seen.has(h.file)) return false;
+    seen.add(h.file);
+    return true;
+  });
 }

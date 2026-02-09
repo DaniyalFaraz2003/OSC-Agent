@@ -1,43 +1,16 @@
 /* eslint-disable @typescript-eslint/require-await */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { parseRepoSlug, parseIssueNumber, validateBranchName, defaultBranchName, validateFlags } from '../../../src/cli/validators';
-import { formatStep, formatInfo, formatSuccess, formatError, formatWarning, formatStateTransition, formatWorkflowResult, formatVerboseAnalysis, formatVerboseSearchResults, formatVerboseFix, formatVerboseSection } from '../../../src/cli/formatters';
+import { formatStep, formatInfo, formatSuccess, formatError, formatWarning, formatStateTransition, formatWorkflowResult, formatVerboseAnalysis, formatVerboseSearchResults, formatVerboseFix, formatVerboseSection, formatDiffBlock } from '../../../src/cli/formatters';
 import { executeIssueCommand, CLIWorkflowLogger, registerIssueCommand } from '../../../src/cli/commands/issue';
 import { Command } from 'commander';
 import type { WorkflowResult } from '../../../src/orchestrator/data-flow';
 
-// ── Mock orchestrator + register-handlers to avoid real API calls ────────
-
-jest.mock('../../../src/orchestrator/workflow', () => {
-  const original: Record<string, unknown> = jest.requireActual('../../../src/orchestrator/workflow');
-  return {
-    ...original,
-    WorkflowOrchestrator: jest.fn().mockImplementation(() => ({
-      run: jest.fn().mockResolvedValue({
-        status: 'completed',
-        runId: 'mock-run-id',
-        finalState: 'DONE',
-        data: {
-          input: { owner: 'octocat', repo: 'Hello-World', issueNumber: 1 },
-          submission: { prNumber: 0, prUrl: '', commitMessage: 'fix: mock' },
-        },
-        attempt: 1,
-        durationMs: 1234,
-      } satisfies WorkflowResult),
-      cancel: jest.fn(),
-      getStateMachine: jest.fn().mockReturnValue({
-        events: { on: jest.fn(), removeAllListeners: jest.fn() },
-      }),
-    })),
-  };
-});
+// ── Mocks ────────────────────────────────────────────────────────────────
 
 jest.mock('../../../src/orchestrator/register-handlers', () => ({
-  createIssueWorkflowCoordinator: jest.fn().mockReturnValue({
-    execute: jest.fn(),
-    registerHandler: jest.fn(),
-    hasHandler: jest.fn().mockReturnValue(true),
-    getRegisteredStates: jest.fn().mockReturnValue([]),
-  }),
+  createIssueWorkflowCoordinator: jest.fn(),
 }));
 
 jest.mock('../../../src/config/loader', () => ({
@@ -48,6 +21,62 @@ jest.mock('../../../src/config/loader', () => ({
     testing: { max_iterations: 3, timeout: 300 },
   }),
 }));
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+function defaultPhaseResponse(state: string): Promise<Record<string, unknown>> {
+  switch (state) {
+    case 'ANALYZING':
+      return Promise.resolve({
+        issue: { id: 1, number: 1, title: 'Test Issue', body: 'Fix a bug', state: 'open', user: { login: 'u' }, created_at: '2024-01-01' },
+        analysis: { type: 'bug', complexity: 'simple', requirements: ['fix null check'], affected_files: ['src/a.ts'] },
+      });
+    case 'SEARCHING':
+      return Promise.resolve({ searchResults: [{ filePath: 'src/a.ts', content: 'const x = null;' }] });
+    case 'PLANNING':
+      return Promise.resolve({ plan: [{ description: 'Fix src/a.ts', targetFiles: ['src/a.ts'], strategy: 'minimal' }] });
+    case 'GENERATING':
+      return Promise.resolve({
+        fixProposal: {
+          explanation: 'Added null guard',
+          confidenceScore: 0.95,
+          patches: ['Index: src/a.ts\n===================================================================\n--- src/a.ts\n+++ src/a.ts\n@@ -1,1 +1,1 @@\n-const x = null;\n+const x = null ?? "default";'],
+          strategy: 'minimal',
+        },
+      });
+    case 'APPLYING':
+      return Promise.resolve({ applyResult: { appliedFiles: ['src/a.ts'], patchCount: 1 } });
+    case 'BUILDING':
+      return Promise.resolve({ buildResult: { success: true, output: 'ok', errors: [] } });
+    case 'TESTING':
+      return Promise.resolve({ testResult: { success: true, logs: 'pass', failureCount: 0, passedCount: 1 } });
+    case 'REVIEWING':
+      return Promise.resolve({ reviewResult: { approved: true, summary: 'Looks good', issues: [], suggestions: [] } });
+    case 'SUBMITTING':
+      return Promise.resolve({ submission: { prNumber: 42, prUrl: 'https://github.com/o/r/pull/42', commitMessage: 'fix: null guard' } });
+    default:
+      return Promise.resolve({});
+  }
+}
+
+/** Set up the default mock coordinator for happy-path tests */
+function setupDefaultCoordinator(): void {
+  const mod = jest.requireMock<any>('../../../src/orchestrator/register-handlers');
+  (mod.createIssueWorkflowCoordinator as jest.Mock).mockClear();
+  (mod.createIssueWorkflowCoordinator as jest.Mock).mockReturnValue({
+    execute: jest.fn().mockImplementation(defaultPhaseResponse),
+    registerHandler: jest.fn(),
+    hasHandler: jest.fn().mockReturnValue(true),
+    getRegisteredStates: jest.fn().mockReturnValue([]),
+  });
+}
+
+/** Get the `execute` mock from the last coordinator that was created */
+function getLastExecuteMock(): jest.Mock {
+  const mod = jest.requireMock<any>('../../../src/orchestrator/register-handlers');
+  const lastResult = (mod.createIssueWorkflowCoordinator as jest.Mock).mock.results.at(-1);
+  return lastResult?.value?.execute as jest.Mock;
+}
 
 // ═══════════════════════════════════════════════════════════════════════
 // Validators
@@ -235,6 +264,19 @@ describe('formatters', () => {
     });
   });
 
+  describe('formatDiffBlock', () => {
+    it('should return the patch content', () => {
+      const patch = '--- a.ts\n+++ a.ts\n@@ -1,1 +1,1 @@\n-old\n+new';
+      const result = formatDiffBlock(patch);
+      expect(result).toContain('old');
+      expect(result).toContain('new');
+    });
+
+    it('should handle empty patches', () => {
+      expect(formatDiffBlock('')).toBe('');
+    });
+  });
+
   describe('formatWorkflowResult', () => {
     const baseResult: WorkflowResult = {
       status: 'completed',
@@ -314,7 +356,7 @@ describe('formatters', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════
-// Issue Command (with mocked orchestrator)
+// Issue Command (phased coordinator execution)
 // ═══════════════════════════════════════════════════════════════════════
 
 describe('executeIssueCommand', () => {
@@ -326,6 +368,7 @@ describe('executeIssueCommand', () => {
     errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     process.exitCode = undefined;
+    setupDefaultCoordinator();
   });
 
   afterEach(() => {
@@ -333,19 +376,72 @@ describe('executeIssueCommand', () => {
     process.exitCode = undefined;
   });
 
-  it('should run successfully with valid options', async () => {
-    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1', dryRun: true });
+  // -- Input validation --
 
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('octocat/Hello-World#1'));
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('completed successfully'));
+  it('should fail on invalid repo format', async () => {
+    await executeIssueCommand({ repo: 'invalid', issue: '1' });
+
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid --repo value'));
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('should fail on invalid issue number', async () => {
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: 'abc' });
+
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid --issue value'));
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('should fail on invalid branch name', async () => {
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1', branch: 'bad branch name' });
+
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid --branch value'));
+    expect(process.exitCode).toBe(1);
+  });
+
+  // -- Preview mode (dry-run, default) --
+
+  it('should run in preview mode by default and show diffs', async () => {
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
+
+    const allLogs = consoleSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('\n');
+    expect(allLogs).toContain('mode:    preview');
+    expect(allLogs).toContain('dryRun:  true');
+    expect(allLogs).toContain('Phase 1/4');
+    expect(allLogs).toContain('Phase 4/4');
+    expect(allLogs).toContain('Proposed changes');
+    expect(allLogs).toContain('Dry-run mode');
     expect(process.exitCode).toBeUndefined();
   });
 
-  it('should display dry-run notice', async () => {
+  it('should only call analysis phases during dry-run', async () => {
     await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1', dryRun: true });
 
+    const executeMock = getLastExecuteMock();
+    const calledStates = executeMock.mock.calls.map((c: unknown[]) => c[0]);
+    expect(calledStates).toEqual(['ANALYZING', 'SEARCHING', 'PLANNING', 'GENERATING']);
+    expect(calledStates).not.toContain('APPLYING');
+  });
+
+  it('should show "No patches" and exit if GENERATING returns empty patches', async () => {
+    const mod = jest.requireMock<any>('../../../src/orchestrator/register-handlers');
+    (mod.createIssueWorkflowCoordinator as jest.Mock).mockReturnValueOnce({
+      execute: jest.fn().mockImplementation((state: string) => {
+        if (state === 'GENERATING') {
+          return Promise.resolve({ fixProposal: { explanation: 'none', confidenceScore: 0, patches: [], strategy: 'minimal' } });
+        }
+        return defaultPhaseResponse(state);
+      }),
+      registerHandler: jest.fn(),
+      hasHandler: jest.fn().mockReturnValue(true),
+      getRegisteredStates: jest.fn().mockReturnValue([]),
+    });
+
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
+
     const allLogs = consoleSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('\n');
-    expect(allLogs).toContain('dryRun');
+    expect(allLogs).toContain('No patches were generated');
+    expect(process.exitCode).toBeUndefined();
   });
 
   it('should display branch info', async () => {
@@ -362,56 +458,6 @@ describe('executeIssueCommand', () => {
     expect(allLogs).toContain('my-branch');
   });
 
-  it('should fail on invalid repo format', async () => {
-    await executeIssueCommand({ repo: 'invalid', issue: '1' });
-
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid --repo value'));
-    expect(process.exitCode).toBe(1);
-  });
-
-  it('should fail on invalid issue number', async () => {
-    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: 'abc' });
-
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid --issue value'));
-    expect(process.exitCode).toBe(1);
-  });
-
-  it('should fail on conflicting flags', async () => {
-    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1', dryRun: true, autoPr: true });
-
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Conflicting options'));
-    expect(process.exitCode).toBe(1);
-  });
-
-  it('should fail on invalid branch name', async () => {
-    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1', branch: 'bad branch name' });
-
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Invalid --branch value'));
-    expect(process.exitCode).toBe(1);
-  });
-
-  it('should set exitCode=1 when workflow fails', async () => {
-    const { WorkflowOrchestrator }: { WorkflowOrchestrator: jest.Mock } = jest.requireMock('../../../src/orchestrator/workflow');
-    WorkflowOrchestrator.mockImplementationOnce(() => ({
-      run: jest.fn().mockResolvedValue({
-        status: 'failed',
-        runId: 'fail-run',
-        finalState: 'ERROR',
-        data: { input: { owner: 'o', repo: 'r', issueNumber: 1 } },
-        attempt: 1,
-        durationMs: 100,
-        error: { code: 'ERR', message: 'Test failure' },
-      }),
-      cancel: jest.fn(),
-      getStateMachine: jest.fn().mockReturnValue({
-        events: { on: jest.fn(), removeAllListeners: jest.fn() },
-      }),
-    }));
-
-    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
-    expect(process.exitCode).toBe(1);
-  });
-
   it('should display verbose info when verbose is true', async () => {
     await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' }, true);
 
@@ -419,90 +465,110 @@ describe('executeIssueCommand', () => {
     expect(allLogs).toContain('verbose: true');
   });
 
-  it('should handle SIGINT registration and cleanup', async () => {
-    const processSpy = jest.spyOn(process, 'once');
-    const removeListenerSpy = jest.spyOn(process, 'removeListener');
+  it('should display verbose analysis when verbose is true', async () => {
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' }, true);
+
+    const allLogs = consoleSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('\n');
+    expect(allLogs).toContain('bug');
+    expect(allLogs).toContain('fix null check');
+  });
+
+  // -- Automated mode (--auto-pr) --
+
+  it('should run through all phases in automated mode', async () => {
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1', autoPr: true });
+
+    const executeMock = getLastExecuteMock();
+    const calledStates = executeMock.mock.calls.map((c: unknown[]) => c[0]);
+    expect(calledStates).toEqual(['ANALYZING', 'SEARCHING', 'PLANNING', 'GENERATING', 'APPLYING', 'BUILDING', 'TESTING', 'REVIEWING', 'SUBMITTING']);
+
+    const allLogs = consoleSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('\n');
+    expect(allLogs).toContain('mode:    automated');
+    expect(allLogs).toContain('dryRun:  false');
+    expect(allLogs).toContain('Applying patches');
+    expect(allLogs).toContain('Pull Request created');
+    expect(allLogs).toContain('Workflow completed successfully');
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it('should override dry-run when --auto-pr is passed', async () => {
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1', dryRun: true, autoPr: true });
+
+    const allLogs = consoleSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('\n');
+    expect(allLogs).toContain('mode:    automated');
+    expect(allLogs).toContain('dryRun:  false');
+    expect(allLogs).toContain('Applying patches');
+  });
+
+  // -- Error handling --
+
+  it('should fail with exitCode=1 when a handler throws', async () => {
+    const mod = jest.requireMock<any>('../../../src/orchestrator/register-handlers');
+    (mod.createIssueWorkflowCoordinator as jest.Mock).mockReturnValueOnce({
+      execute: jest.fn().mockRejectedValue(new Error('API key expired')),
+      registerHandler: jest.fn(),
+      hasHandler: jest.fn().mockReturnValue(true),
+      getRegisteredStates: jest.fn().mockReturnValue([]),
+    });
 
     await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
 
-    expect(processSpy).toHaveBeenCalledWith('SIGINT', expect.any(Function));
-    expect(removeListenerSpy).toHaveBeenCalledWith('SIGINT', expect.any(Function));
-
-    processSpy.mockRestore();
-    removeListenerSpy.mockRestore();
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('API key expired'));
   });
 
-  it('should invoke orchestrator.cancel when SIGINT fires', async () => {
-    let sigintHandler: (() => void) | undefined;
-    const cancelMock = jest.fn();
-
-    const { WorkflowOrchestrator: WO }: { WorkflowOrchestrator: jest.Mock } = jest.requireMock('../../../src/orchestrator/workflow');
-    WO.mockImplementationOnce(() => ({
-      run: jest.fn().mockImplementation(() => {
-        // Simulate SIGINT during execution
-        if (sigintHandler) sigintHandler();
-        return Promise.resolve({
-          status: 'cancelled',
-          runId: 'cancel-run',
-          finalState: 'CANCELLED',
-          data: { input: { owner: 'o', repo: 'r', issueNumber: 1 } },
-          attempt: 1,
-          durationMs: 50,
-        });
-      }),
-      cancel: cancelMock,
-      getStateMachine: jest.fn().mockReturnValue({
-        events: { on: jest.fn(), removeAllListeners: jest.fn() },
-      }),
-    }));
-
-    // Capture the SIGINT handler that issue.ts registers
-    jest.spyOn(process, 'once').mockImplementation(((event: string, handler: () => void) => {
-      if (event === 'SIGINT') sigintHandler = handler;
-      return process;
-    }) as typeof process.once);
+  it('should include phase name in error message', async () => {
+    const mod = jest.requireMock<any>('../../../src/orchestrator/register-handlers');
+    (mod.createIssueWorkflowCoordinator as jest.Mock).mockReturnValueOnce({
+      execute: jest.fn().mockRejectedValue(new Error('Rate limit hit')),
+      registerHandler: jest.fn(),
+      hasHandler: jest.fn().mockReturnValue(true),
+      getRegisteredStates: jest.fn().mockReturnValue([]),
+    });
 
     await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
-    expect(cancelMock).toHaveBeenCalled();
 
-    jest.restoreAllMocks();
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Issue analysis failed'));
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Rate limit hit'));
   });
+
+  it('should handle non-Error throws', async () => {
+    const mod = jest.requireMock<any>('../../../src/orchestrator/register-handlers');
+    (mod.createIssueWorkflowCoordinator as jest.Mock).mockReturnValueOnce({
+      execute: jest.fn().mockRejectedValue('string error'),
+      registerHandler: jest.fn(),
+      hasHandler: jest.fn().mockReturnValue(true),
+      getRegisteredStates: jest.fn().mockReturnValue([]),
+    });
+
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
+
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('string error'));
+    expect(process.exitCode).toBe(1);
+  });
+
+  // -- SIGINT handling --
+
+  it('should register and clean up SIGINT handler', async () => {
+    const onSpy = jest.spyOn(process, 'on');
+    const removeSpy = jest.spyOn(process, 'removeListener');
+
+    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
+
+    expect(onSpy).toHaveBeenCalledWith('SIGINT', expect.any(Function));
+    expect(removeSpy).toHaveBeenCalledWith('SIGINT', expect.any(Function));
+
+    onSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
+
+  // -- Verbose option on command itself --
 
   it('should work with verbose option on the command itself', async () => {
     await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1', verbose: true });
 
     const allLogs = consoleSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('\n');
     expect(allLogs).toContain('verbose: true');
-  });
-
-  it('should handle orchestrator throwing unexpected error', async () => {
-    const { WorkflowOrchestrator: WO }: { WorkflowOrchestrator: jest.Mock } = jest.requireMock('../../../src/orchestrator/workflow');
-    WO.mockImplementationOnce(() => ({
-      run: jest.fn().mockRejectedValue(new Error('Unexpected crash')),
-      cancel: jest.fn(),
-      getStateMachine: jest.fn().mockReturnValue({
-        events: { on: jest.fn(), removeAllListeners: jest.fn() },
-      }),
-    }));
-
-    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Unexpected crash'));
-    expect(process.exitCode).toBe(1);
-  });
-
-  it('should handle non-Error throws', async () => {
-    const { WorkflowOrchestrator: WO }: { WorkflowOrchestrator: jest.Mock } = jest.requireMock('../../../src/orchestrator/workflow');
-    WO.mockImplementationOnce(() => ({
-      run: jest.fn().mockRejectedValue('string error'),
-      cancel: jest.fn(),
-      getStateMachine: jest.fn().mockReturnValue({
-        events: { on: jest.fn(), removeAllListeners: jest.fn() },
-      }),
-    }));
-
-    await executeIssueCommand({ repo: 'octocat/Hello-World', issue: '1' });
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('string error'));
-    expect(process.exitCode).toBe(1);
   });
 });
 
@@ -597,7 +663,7 @@ describe('registerIssueCommand', () => {
 
     const issueCmd = program.commands.find((c) => c.name() === 'issue');
     expect(issueCmd).toBeDefined();
-    expect(issueCmd?.description()).toBe('Process a single GitHub issue');
+    expect(issueCmd?.description()).toBe('Analyze a GitHub issue and generate a fix');
   });
 
   it('should register required and optional options', () => {
@@ -610,5 +676,6 @@ describe('registerIssueCommand', () => {
     expect(helpText).toContain('--dry-run');
     expect(helpText).toContain('--auto-pr');
     expect(helpText).toContain('--branch');
+    expect(helpText).toContain('--verbose');
   });
 });

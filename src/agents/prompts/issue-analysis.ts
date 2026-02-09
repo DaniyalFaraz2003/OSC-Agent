@@ -1,3 +1,27 @@
 export function buildIssueAnalysisPrompt(input: { title: string; body: string; labels: string[] }): string {
-  return ['You are an expert software engineer and technical product manager.', 'Analyze the given GitHub issue and return a single JSON object with the required fields.', '', 'Rules:', '- Output MUST be valid JSON only. No markdown. No code fences. No extra keys.', "- 'requirements' must be an array of concise strings.", "- 'affected_files' must be an array of file paths or module identifiers (like src/foo/bar.ts).", "- If uncertain, use type='unknown' and/or empty arrays.", '', 'Allowed enums:', '- type: bug | feature | documentation | refactor | question | chore | unknown', "- complexity: simple | medium | complex (MUST be exactly one of these; do not use 'unknown' or any other value)", '', 'Input:', `Title: ${input.title}`, `Labels: ${input.labels.join(', ') || 'none'}`, 'Body:', input.body, '', 'Output JSON:'].join('\n');
+  return [
+    'You are an expert software engineer and technical product manager.',
+    'Analyze the given GitHub issue and return a single JSON object with the required fields.',
+    '',
+    'Rules:',
+    '- Output MUST be valid JSON only. No markdown. No code fences. No extra keys.',
+    "- 'requirements' must be an array of concise, actionable requirement strings.",
+    "- 'affected_files' must be an array of concrete file paths (e.g., \"src/utils/helper.ts\", \"tests/unit/math.test.ts\").",
+    '  - Do NOT use glob patterns (no *.ts, no **/).',
+    '  - For features that require creating new files, list the exact file paths to create.',
+    '  - For bugs, list the files that contain the buggy code.',
+    "- If uncertain, use type='unknown' and/or empty arrays.",
+    '',
+    'Allowed enums:',
+    '- type: bug | feature | documentation | refactor | question | chore | unknown',
+    "- complexity: simple | medium | complex (MUST be exactly one of these; do not use 'unknown' or any other value)",
+    '',
+    'Input:',
+    `Title: ${input.title}`,
+    `Labels: ${input.labels.join(', ') || 'none'}`,
+    'Body:',
+    input.body,
+    '',
+    'Output JSON:',
+  ].join('\n');
 }
