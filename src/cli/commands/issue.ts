@@ -161,9 +161,7 @@ export async function executeIssueCommand(options: IssueCommandOptions, globalVe
     data = mergeData(data, await runPhase('Issue analysis', coordinator, 'ANALYZING', data));
 
     if (verbose && data.analysis) {
-      console.log(
-        formatVerboseAnalysis(data.analysis as { type: string; complexity: string; requirements: string[]; affected_files: string[] }),
-      );
+      console.log(formatVerboseAnalysis(data.analysis as { type: string; complexity: string; requirements: string[]; affected_files: string[] }));
     }
     console.log(formatSuccess('Issue analyzed'));
     assertNotInterrupted(interrupted);

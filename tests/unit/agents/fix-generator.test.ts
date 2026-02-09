@@ -155,10 +155,7 @@ describe('FixGenerator', () => {
     const result = await generator.generateFix(mockIssue, mockAnalysis, mockSearchResults);
 
     expect(result.patches).toHaveLength(0);
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Diff failed for unknown-file.ts:'),
-      expect.any(Error),
-    );
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Diff failed for unknown-file.ts:'), expect.any(Error));
 
     consoleSpy.mockRestore();
   });
