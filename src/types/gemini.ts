@@ -36,6 +36,11 @@ export interface GeminiRequestOptions {
   stream?: boolean;
   useCache?: boolean;
   taskComplexity?: 'low' | 'medium' | 'high';
+  /**
+   * Desired response MIME type for the underlying Gemini call.
+   * Example: 'application/json' to strongly prefer pure JSON output.
+   */
+  responseMimeType?: string;
 }
 
 export const GEMINI_MODELS: Record<string, GeminiModelConfig> = {

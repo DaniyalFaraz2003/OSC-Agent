@@ -2,14 +2,14 @@ export type FixStrategy = 'minimal' | 'comprehensive' | 'refactor';
 
 export const getFixGenerationPrompt = (issueDescription: string, analysis: string, context: string, strategy: FixStrategy): string => {
   const strategyInstructions = {
-    minimal: 'Focus on the smallest possible change to fix the bug. Do not touch unrelated code.',
-    comprehensive: 'Fix the bug and address edge cases or logical gaps identified in the analysis.',
-    refactor: 'Fix the bug while improving code readability and following best practices.',
+    minimal: 'Make the smallest set of changes necessary to address the issue. Do not touch unrelated code.',
+    comprehensive: 'Address the issue thoroughly, including edge cases, validation, and error handling identified in the analysis.',
+    refactor: 'Address the issue while improving code readability, structure, and adherence to best practices.',
   };
 
   return `
 ACT AS: Senior Software Engineer
-TASK: Generate a code fix for the reported issue.
+TASK: Generate code changes to address the reported GitHub issue.
 
 ### ISSUE DESCRIPTION
 ${issueDescription}
@@ -23,24 +23,52 @@ ${context}
 ### STRATEGY
 ${strategyInstructions[strategy]}
 
-### OUTPUT REQUIREMENTS
-You must return a valid JSON object. Do not include markdown code blocks (like \`\`\`json).
-The JSON must follow this structure:
+### OUTPUT FORMAT (STRICT JSON)
+
+You must return a valid JSON object.
+
+- Return **ONLY** raw JSON. No prose, no explanations, no markdown.
+- Do **NOT** wrap it in any markdown code fences or surround it with backticks.
+- Do **NOT** include comments, trailing commas, or any non-JSON syntax.
+- The first non-whitespace character in your response must be an opening brace {.
+- The last non-whitespace character in your response must be a closing brace }.
+
+The JSON must have this exact shape (you can change the values, add more
+changes, and extend the explanation text, but not the key names):
+
 {
-  "explanation": "Detailed explanation of the fix",
+  "explanation": "Clear explanation of what you changed and why",
   "confidenceScore": 0.95,
   "changes": [
     {
-      "filePath": "path/to/file.ts",
-      "originalCode": "exact snippet to replace",
-      "replacementCode": "new code snippet"
+      "filePath": "relative/path/to/file.ts",
+      "originalCode": "",
+      "replacementCode": "THE COMPLETE FILE CONTENT AFTER YOUR CHANGES"
     }
   ]
 }
 
 ### CRITICAL RULES
-1. "originalCode" must be an EXACT substring match of the code provided in the context.
-2. Ensure the "replacementCode" maintains existing indentation and coding style.
-3. If multiple files need changes, include them all in the "changes" array.
+
+1. **ALWAYS set "originalCode" to an empty string: ""**
+   - For EVERY change (new files AND modifications to existing files).
+   - Do NOT try to copy code snippets from the context — just use "".
+
+2. **"replacementCode" must be the COMPLETE file content.**
+   - For existing files: provide the ENTIRE modified file (all imports, all functions, everything).
+   - For new files: provide the ENTIRE new file content.
+   - The system will automatically compute the diff against the existing file.
+
+3. **File paths must be relative** to the project root (e.g., "src/utils/helper.ts").
+
+4. **You MUST return at least one change.** Never return an empty "changes" array.
+
+5. **Include ALL files** required to fully address the issue. Do not leave partial work.
+
+6. **Every file must be syntactically valid** TypeScript/JavaScript that compiles and runs.
+
+7. **Preserve existing code** that is unrelated to the issue. If modifying an existing file,
+   keep all the existing functions, imports, and logic that are not part of your fix.
+   Only change what is necessary.
 `;
 };

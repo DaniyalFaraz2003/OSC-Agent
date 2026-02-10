@@ -42,6 +42,8 @@ export class GeminiClient {
           topK: options.topK,
           maxOutputTokens: options.maxOutputTokens,
           stopSequences: options.stopSequences,
+          // Allow callers (like FixGenerator) to request strict JSON output.
+          responseMimeType: options.responseMimeType,
         },
       });
     });

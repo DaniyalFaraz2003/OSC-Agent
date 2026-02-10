@@ -33,7 +33,6 @@ export function validateBranchName(branch: string): string {
     throw new Error('Invalid --branch value: branch name cannot be empty.');
   }
 
-  // Simple conservative rule set; avoids spaces and common invalid chars.
   if (!/^[A-Za-z0-9._/-]+$/.test(trimmed)) {
     throw new Error(`Invalid --branch value: "${branch}". Only letters, numbers, '.', '_', '-', '/', are allowed.`);
   }
@@ -43,4 +42,14 @@ export function validateBranchName(branch: string): string {
 
 export function defaultBranchName(owner: string, repo: string, issueNumber: number): string {
   return `osc/${owner}-${repo}-issue-${issueNumber}`;
+}
+
+/**
+ * Validate that the combination of CLI flags is consistent.
+ * Throws with a user-friendly message if any conflicts are found.
+ */
+export function validateFlags(opts: { dryRun: boolean; autoPr: boolean }): void {
+  if (opts.dryRun && opts.autoPr) {
+    throw new Error('Conflicting options: --dry-run and --auto-pr cannot be used together.');
+  }
 }

@@ -126,7 +126,7 @@ describe('FixGenerator', () => {
     await expect(generator.generateFix(mockIssue, mockAnalysis, mockSearchResults)).rejects.toThrow('Failed to parse AI fix proposal as JSON');
   });
 
-  it('should skip a patch if the file path is not found in search results', async () => {
+  it('should skip a patch when the file does not exist and originalCode cannot be matched', async () => {
     const mockAiResponse = {
       explanation: 'Fix',
       confidenceScore: 1.0,
@@ -144,9 +144,49 @@ describe('FixGenerator', () => {
       usage: {},
     } as unknown as GeminiResponse);
 
+    // File is not in search results and does not exist on disk.
+    // DiffGenerator will receive empty content and fail to find the originalCode.
+    (DiffGenerator.generate as jest.Mock).mockImplementation(() => {
+      throw new Error('Could not find original code block in unknown-file.ts');
+    });
+
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
     const result = await generator.generateFix(mockIssue, mockAnalysis, mockSearchResults);
 
     expect(result.patches).toHaveLength(0);
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('unknown-file.ts'));
+
+    consoleSpy.mockRestore();
+  });
+
+  it('should generate a patch for new files when originalCode is empty', async () => {
+    const mockAiResponse = {
+      explanation: 'Create a new utility file',
+      confidenceScore: 0.9,
+      changes: [
+        {
+          filePath: 'src/new-util.ts',
+          originalCode: '',
+          replacementCode: 'export const greet = () => "hello";',
+        },
+      ],
+    };
+
+    mockGeminiClient.generate.mockResolvedValue({
+      content: JSON.stringify(mockAiResponse),
+      usage: {},
+    } as unknown as GeminiResponse);
+
+    const newFileDiff = 'Index: src/new-util.ts\n--- src/new-util.ts\n+++ src/new-util.ts\n@@ -0,0 +1 @@\n+export const greet = () => "hello";';
+    (DiffGenerator.generate as jest.Mock).mockReturnValue(newFileDiff);
+
+    const result = await generator.generateFix(mockIssue, mockAnalysis, []);
+
+    expect(result.patches).toHaveLength(1);
+    expect(result.patches[0]).toBe(newFileDiff);
+    // For new files (not in search results, not on disk), DiffGenerator is called with empty content
+    expect(DiffGenerator.generate).toHaveBeenCalledWith(mockAiResponse.changes[0], '');
   });
 
   it('should catch and log errors from DiffGenerator without crashing the whole process', async () => {
@@ -171,7 +211,7 @@ describe('FixGenerator', () => {
     const result = await generator.generateFix(mockIssue, mockAnalysis, mockSearchResults);
 
     expect(result.patches).toHaveLength(0);
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Diff failed for src/math.ts:'), expect.any(Error));
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('src/math.ts'));
 
     consoleSpy.mockRestore();
   });

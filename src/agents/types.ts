@@ -17,7 +17,7 @@ export interface GitHubIssue {
 
 export const IssueAnalysisSchema = z.object({
   type: z.enum(['bug', 'feature', 'documentation', 'refactor', 'question', 'chore', 'unknown']),
-  complexity: z.enum(['simple', 'medium', 'complex']),
+  complexity: z.union([z.enum(['simple', 'medium', 'complex']), z.string()]).transform((v) => (v === 'simple' || v === 'medium' || v === 'complex' ? v : 'medium')),
   requirements: z.array(z.string().min(1)).default([]),
   affected_files: z.array(z.string().min(1)).default([]),
 });

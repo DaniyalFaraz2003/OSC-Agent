@@ -1,55 +1,145 @@
 import chalk from 'chalk';
 import type { WorkflowResult } from '../orchestrator/data-flow';
+import type { State } from '../orchestrator/states';
+
+// ── Primitives ──────────────────────────────────────────────────────────
 
 export function formatStep(message: string): string {
-  return chalk.cyan(message);
+  return chalk.cyan(`> ${message}`);
 }
 
 export function formatInfo(message: string): string {
-  return chalk.gray(message);
+  return chalk.gray(`  ${message}`);
 }
 
 export function formatSuccess(message: string): string {
-  return chalk.green(message);
+  return chalk.green(`  ${message}`);
 }
 
 export function formatError(message: string): string {
-  return chalk.red(message);
+  return chalk.red(`  ${message}`);
 }
 
-export function formatWorkflowResult(result: WorkflowResult, opts?: { dryRun?: boolean }): string {
-  const lines: string[] = [];
+export function formatWarning(message: string): string {
+  return chalk.yellow(`  ${message}`);
+}
+
+// ── State progress ──────────────────────────────────────────────────────
+
+const STATE_LABELS: Partial<Record<State, string>> = {
+  ANALYZING: 'Analyzing issue...',
+  SEARCHING: 'Searching codebase...',
+  PLANNING: 'Creating fix plan...',
+  GENERATING: 'Generating code fix...',
+  APPLYING: 'Applying patches...',
+  BUILDING: 'Building project...',
+  TESTING: 'Running tests...',
+  REVIEWING: 'Reviewing changes...',
+  SUBMITTING: 'Submitting PR...',
+  DONE: 'Done',
+  PAUSED: 'Paused',
+  ERROR: 'Error',
+  CANCELLED: 'Cancelled',
+};
+
+export function formatStateTransition(from: State, to: State): string {
+  const label = STATE_LABELS[to] ?? to;
+  return chalk.cyan(`  [${from} -> ${to}] ${label}`);
+}
+
+// ── Verbose interim output ──────────────────────────────────────────────
+
+export function formatVerboseSection(title: string, body: string): string {
+  const separator = chalk.gray('─'.repeat(60));
+  return `${separator}\n${chalk.bold(title)}\n${body}\n${separator}`;
+}
+
+export function formatVerboseAnalysis(analysis: { type: string; complexity: string; requirements: string[]; affected_files: string[] }): string {
+  const lines = [`  type:       ${analysis.type}`, `  complexity: ${analysis.complexity}`, `  requirements:`, ...analysis.requirements.map((r) => `    - ${r}`), `  affected files:`, ...analysis.affected_files.map((f) => `    - ${f}`)];
+  return formatVerboseSection('Issue Analysis', lines.join('\n'));
+}
+
+export function formatVerboseSearchResults(results: Array<{ filePath: string }>): string {
+  if (!results.length) return formatVerboseSection('Search Results', '  (no files found)');
+  const lines = results.map((r) => `  - ${r.filePath}`);
+  return formatVerboseSection('Search Results', `  ${results.length} file(s) found:\n${lines.join('\n')}`);
+}
+
+export function formatVerboseFix(fix: { explanation: string; confidenceScore: number; patches: string[] }): string {
+  const lines = [`  explanation: ${fix.explanation}`, `  confidence:  ${(fix.confidenceScore * 100).toFixed(0)}%`, `  patches:     ${fix.patches.length}`];
+  return formatVerboseSection('Generated Fix', lines.join('\n'));
+}
+
+// ── Diff display ────────────────────────────────────────────────────────
+
+/** Render a unified diff patch with syntax-aware coloring */
+export function formatDiffBlock(patch: string): string {
+  const lines = patch.split('\n');
+  return lines
+    .map((line) => {
+      if (line.startsWith('Index:') || line.startsWith('===')) {
+        return chalk.bold(line);
+      }
+      if (line.startsWith('---')) {
+        return chalk.bold.red(line);
+      }
+      if (line.startsWith('+++')) {
+        return chalk.bold.green(line);
+      }
+      if (line.startsWith('@@')) {
+        return chalk.cyan(line);
+      }
+      if (line.startsWith('+')) {
+        return chalk.green(line);
+      }
+      if (line.startsWith('-')) {
+        return chalk.red(line);
+      }
+      if (line.startsWith('\\')) {
+        return chalk.gray(line);
+      }
+      return line;
+    })
+    .join('\n');
+}
+
+// ── Final result ────────────────────────────────────────────────────────
+
+export function formatWorkflowResult(result: WorkflowResult, opts?: { dryRun?: boolean; verbose?: boolean }): string {
+  const lines: string[] = [''];
 
   if (result.status === 'completed') {
-    lines.push(formatSuccess('Workflow completed successfully.'));
+    lines.push(chalk.green.bold('Workflow completed successfully.'));
   } else if (result.status === 'cancelled') {
-    lines.push(formatInfo('Workflow cancelled.'));
+    lines.push(chalk.yellow.bold('Workflow cancelled.'));
   } else if (result.status === 'paused') {
-    lines.push(formatInfo('Workflow paused.'));
+    lines.push(chalk.yellow.bold('Workflow paused.'));
   } else {
-    lines.push(formatError('Workflow failed.'));
+    lines.push(chalk.red.bold('Workflow failed.'));
   }
 
-  lines.push(formatInfo(`runId: ${result.runId}`));
-  lines.push(formatInfo(`finalState: ${result.finalState}`));
-  lines.push(formatInfo(`attempt: ${result.attempt}`));
-  lines.push(formatInfo(`durationMs: ${result.durationMs}`));
+  lines.push(formatInfo(`Run ID:    ${result.runId}`));
+  lines.push(formatInfo(`State:     ${result.finalState}`));
+  lines.push(formatInfo(`Attempts:  ${result.attempt}`));
+  lines.push(formatInfo(`Duration:  ${(result.durationMs / 1000).toFixed(1)}s`));
 
   if (opts?.dryRun) {
-    lines.push(formatInfo('dryRun: true'));
+    lines.push(formatWarning('(dry-run mode — no external changes were made)'));
   }
 
   if (result.error) {
-    lines.push(formatError(`error: ${result.error.code} - ${result.error.message}`));
-    if (result.error.details) lines.push(formatInfo(`details: ${result.error.details}`));
+    lines.push(formatError(`Error: [${result.error.code}] ${result.error.message}`));
+    if (result.error.details && opts?.verbose) {
+      lines.push(formatInfo(`Details: ${result.error.details}`));
+    }
   }
 
   if (result.data?.submission?.prUrl) {
-    lines.push(formatSuccess(`PR: ${result.data.submission.prUrl}`));
+    lines.push(chalk.green.bold(`  PR: ${result.data.submission.prUrl}`));
   }
 
   if (result.data?.applyResult?.appliedFiles?.length) {
-    lines.push(formatInfo(`changedFiles: ${result.data.applyResult.appliedFiles.join(', ')}`));
+    lines.push(formatInfo(`Changed files: ${result.data.applyResult.appliedFiles.join(', ')}`));
   }
 
   return lines.join('\n');
