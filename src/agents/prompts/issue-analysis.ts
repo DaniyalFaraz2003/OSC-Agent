@@ -6,7 +6,7 @@ export function buildIssueAnalysisPrompt(input: { title: string; body: string; l
     'Rules:',
     '- Output MUST be valid JSON only. No markdown. No code fences. No extra keys.',
     "- 'requirements' must be an array of concise, actionable requirement strings.",
-    "- 'affected_files' must be an array of concrete file paths (e.g., \"src/utils/helper.ts\", \"tests/unit/math.test.ts\").",
+    '- \'affected_files\' must be an array of concrete file paths (e.g., "src/utils/helper.ts", "tests/unit/math.test.ts").',
     '  - Do NOT use glob patterns (no *.ts, no **/).',
     '  - For features that require creating new files, list the exact file paths to create.',
     '  - For bugs, list the files that contain the buggy code.',

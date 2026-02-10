@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/require-await */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { parseRepoSlug, parseIssueNumber, validateBranchName, defaultBranchName, validateFlags } from '../../../src/cli/validators';
 import { formatStep, formatInfo, formatSuccess, formatError, formatWarning, formatStateTransition, formatWorkflowResult, formatVerboseAnalysis, formatVerboseSearchResults, formatVerboseFix, formatVerboseSection, formatDiffBlock } from '../../../src/cli/formatters';
 import { executeIssueCommand, CLIWorkflowLogger, registerIssueCommand } from '../../../src/cli/commands/issue';
