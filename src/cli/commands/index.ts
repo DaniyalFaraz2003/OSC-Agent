@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { registerIssueCommand } from './issue';
+import { registerConfigCommand } from './config';
 
 /**
  * Register all subcommands here
@@ -21,4 +22,5 @@ export function registerCommands(program: Command): void {
     });
 
   registerIssueCommand(program);
+  registerConfigCommand(program);
 }
