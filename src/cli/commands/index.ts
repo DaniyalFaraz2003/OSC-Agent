@@ -1,5 +1,6 @@
 import { Command } from 'commander';
-import { registerIssueCommand } from './issue';
+import { registerIssueCommand } from './issue.js';
+import { registerAutoCommand } from './auto.js';
 
 /**
  * Register all subcommands here
@@ -21,4 +22,7 @@ export function registerCommands(program: Command): void {
     });
 
   registerIssueCommand(program);
+  registerAutoCommand(program);
 }
+
+export { registerAutoCommand };
